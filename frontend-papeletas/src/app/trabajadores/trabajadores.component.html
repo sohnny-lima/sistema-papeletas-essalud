@@ -1,0 +1,169 @@
+<!-- Page Header -->
+<div class="page-header">
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+           style="background:var(--essalud-blue)">
+        <i class="bi bi-people-fill text-white text-lg"></i>
+      </div>
+      <div>
+        <h2 class="!text-xl !font-bold !m-0" style="color:var(--essalud-navy)">Gestión de Trabajadores</h2>
+        <p class="text-sm text-gray-500 m-0">Registro y administración de personal</p>
+      </div>
+    </div>
+    <button class="flex items-center gap-2 text-sm font-semibold text-white px-4 py-2 rounded-xl shadow transition-all hover:opacity-90"
+            style="background:var(--essalud-blue); border:none;"
+            (click)="resetForm(); openModal()">
+      <i class="bi bi-plus-circle-fill"></i> Agregar Trabajador
+    </button>
+  </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="isLoading" class="es-loader">
+  <div class="spinner-border" role="status" style="color:var(--essalud-blue)"></div>
+  <span>Cargando trabajadores...</span>
+</div>
+
+<!-- Search Bar -->
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5">
+  <div class="es-search flex-1">
+    <select class="category-select" [(ngModel)]="selectedCategory" (change)="applyFilter()">
+      <option value="">Todo</option>
+      <option value="nombres">Nombres</option>
+      <option value="apellido_paterno">Apellido Paterno</option>
+      <option value="apellido_materno">Apellido Materno</option>
+      <option value="numero_identificacion">DNI / Identificación</option>
+    </select>
+    <input type="text" placeholder="Buscar por nombre, apellidos o DNI..." [(ngModel)]="searchText" (keyup.enter)="applyFilter()" />
+    <button *ngIf="searchText || selectedCategory" type="button" class="search-clear-btn" (click)="clearSearch()" title="Limpiar búsqueda">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    <button type="button" class="search-btn" (click)="applyFilter()"><i class="bi bi-search"></i></button>
+  </div>
+</div>
+
+<!-- Table -->
+<div *ngIf="!isLoading && trabajadores.length > 0; else noData"
+     class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+  <div class="overflow-x-auto">
+    <table class="es-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombres</th>
+          <th>Ap. Paterno</th>
+          <th>Ap. Materno</th>
+          <th>DNI / ID</th>
+          <th class="text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let trabajador of trabajadores">
+          <td>
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold text-white"
+                  style="background:var(--essalud-blue)">{{ trabajador.id_trabajador }}</span>
+          </td>
+          <td class="font-medium text-gray-800">{{ trabajador.nombres }}</td>
+          <td class="text-gray-600">{{ trabajador.apellido_paterno }}</td>
+          <td class="text-gray-600">{{ trabajador.apellido_materno }}</td>
+          <td>
+            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium"
+                  style="background:#EAF7FD; color:var(--essalud-blue);">
+              <i class="bi bi-person-badge-fill" style="font-size:10px"></i>
+              {{ trabajador.numero_identificacion }}
+            </span>
+          </td>
+          <td class="text-center">
+            <button class="w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all hover:opacity-90 me-1"
+                    style="background:#FFF8E1; border-color:#F59E0B; color:#B45309"
+                    (click)="editTrabajador(trabajador)" title="Editar">
+              <i class="bi bi-pencil-fill text-xs"></i>
+            </button>
+            <button class="w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all hover:opacity-90"
+                    style="background:#FEF2F2; border-color:#F87171; color:#DC2626"
+                    (click)="deleteTrabajador(trabajador.id_trabajador ?? 0)" title="Eliminar">
+              <i class="bi bi-trash-fill text-xs"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<ng-template #noData>
+  <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+    <i class="bi bi-people text-5xl mb-3" style="color:#CBD5E1"></i>
+    <p class="font-medium">No hay trabajadores disponibles</p>
+    <p class="text-sm">Agrega el primer trabajador usando el botón superior</p>
+  </div>
+</ng-template>
+
+<!-- Pagination -->
+<div *ngIf="!isLoading && totalItems > 0" class="mt-4">
+  <p class="text-center text-sm text-gray-400 mb-2">
+    Mostrando {{ currentStartIndex }}-{{ currentEndIndex }} de {{ totalItems }} trabajadores
+  </p>
+  <div class="es-pagination">
+    <button (click)="goToFirstPage()" [disabled]="currentPage === 1" title="Primera página">
+      <i class="bi bi-skip-start-fill"></i>
+    </button>
+    <button (click)="previousPage()" [disabled]="currentPage === 1" title="Anterior">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+    <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage >= totalPages" title="Siguiente">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+    <button (click)="goToLastPage()" [disabled]="currentPage >= totalPages" title="Última página">
+      <i class="bi bi-skip-end-fill"></i>
+    </button>
+  </div>
+</div>
+
+<!-- Modal Agregar/Editar Trabajador -->
+<div class="modal fade" id="trabajadorModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header es-modal-header">
+        <h5 class="modal-title font-bold">
+          <i class="bi bi-person-fill me-2"></i>
+          {{ trabajador && trabajador.id_trabajador ? 'Editar Trabajador' : 'Agregar Trabajador' }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body p-5">
+        <form>
+          <div class="mb-4">
+            <label for="nombres" class="block text-sm font-semibold text-gray-700 mb-1">Nombres</label>
+            <input type="text" class="form-control rounded-xl" id="nombres"
+                   [(ngModel)]="trabajador.nombres" name="nombres" required />
+          </div>
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div>
+              <label for="apellidoPaterno" class="block text-sm font-semibold text-gray-700 mb-1">Ap. Paterno</label>
+              <input type="text" class="form-control rounded-xl" id="apellidoPaterno"
+                     [(ngModel)]="trabajador.apellido_paterno" name="apellido_paterno" required />
+            </div>
+            <div>
+              <label for="apellidoMaterno" class="block text-sm font-semibold text-gray-700 mb-1">Ap. Materno</label>
+              <input type="text" class="form-control rounded-xl" id="apellidoMaterno"
+                     [(ngModel)]="trabajador.apellido_materno" name="apellido_materno" required />
+            </div>
+          </div>
+          <div class="mb-5">
+            <label for="numeroIdentificacion" class="block text-sm font-semibold text-gray-700 mb-1">DNI / Nº Identificación</label>
+            <input type="text" class="form-control rounded-xl" id="numeroIdentificacion"
+                   [(ngModel)]="trabajador.numero_identificacion" name="numero_identificacion" required />
+          </div>
+          <button type="button" class="w-full py-3 rounded-xl text-white font-semibold text-sm shadow-lg"
+                  style="background:var(--essalud-blue); border:none"
+                  (click)="onSubmit()">
+            <i class="bi bi-check-circle-fill me-2"></i> Guardar Cambios
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

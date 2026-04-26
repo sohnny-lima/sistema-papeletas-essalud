@@ -1,0 +1,38 @@
+/* 🎨 Estilos de la Aplicación */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1 {
+  color: #333;
+}
+
+/* ✅ Evitar conflictos en botones */
+.btn-primary {
+  background-color: var(--essalud-blue) !important;
+  border-color: var(--essalud-blue) !important;
+  color: #fff !important;
+  opacity: 1 !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--essalud-blue-dark) !important;
+  border-color: var(--essalud-blue-dark) !important;
+}
+
+/* 📌 Ajustes Responsive */
+@media screen and (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+}

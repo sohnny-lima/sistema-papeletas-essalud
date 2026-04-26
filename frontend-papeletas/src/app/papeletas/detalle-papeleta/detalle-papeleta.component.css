@@ -1,0 +1,82 @@
+/* Estilo para la tarjeta de la papeleta */
+.card {
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+}
+
+/* Cabecera de la tarjeta */
+.card-header {
+  background-color: #007bff;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* Cuerpo de la tarjeta */
+.card-body {
+  padding: 20px;
+  font-size: 1.1rem;
+}
+
+.card-body p {
+  margin-bottom: 10px;
+}
+
+.card-body strong {
+  font-weight: bold;
+}
+
+/* Botones */
+button {
+  font-size: 1.1rem;
+  padding: 10px 20px;
+  border-radius: 5px;
+  margin: 10px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border: none;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+}
+
+/* Contenedor para los botones */
+.text-center {
+  margin-top: 20px;
+}
+
+/* Estilos para la vista previa del PDF */
+.pdf-container {
+  margin: 20px;
+  padding: 20px;
+  background-color: #f8f9fa;
+}
+
+/* Estilo para la tabla (si decides agregar una más adelante) */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th, table td {
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+
+table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}

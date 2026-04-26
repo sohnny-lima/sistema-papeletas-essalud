@@ -1,0 +1,107 @@
+<div class="page-header">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+         style="background:var(--essalud-blue)">
+      <i class="bi bi-speedometer2 text-white text-lg"></i>
+    </div>
+    <div>
+      <h2 class="!text-xl !font-bold" style="color:var(--essalud-navy)">Dashboard de Estadísticas</h2>
+      <p class="text-sm text-gray-500 m-0">Resumen general del sistema patrimonial</p>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<ng-container *ngIf="cargando; else contenido">
+  <div class="es-loader">
+    <div class="spinner-border" role="status" style="color:var(--essalud-blue)"></div>
+    <span>Cargando estadísticas...</span>
+  </div>
+</ng-container>
+
+<ng-template #contenido>
+  <div *ngIf="estadisticas">
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+
+      <!-- Trabajadores -->
+      <div class="stat-card flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+             style="background:var(--essalud-blue)">
+          <i class="bi bi-people-fill text-white text-2xl"></i>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 m-0">Trabajadores</p>
+          <h3 class="text-3xl font-bold m-0" style="color:var(--essalud-blue)">{{ estadisticas.totalTrabajadores }}</h3>
+          <p class="text-xs text-gray-400 m-0">Total registrados</p>
+        </div>
+      </div>
+
+      <!-- Equipos -->
+      <div class="stat-card flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+             style="background:var(--essalud-blue)">
+          <i class="bi bi-laptop-fill text-white text-2xl"></i>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 m-0">Equipos</p>
+          <h3 class="text-3xl font-bold m-0" style="color:var(--essalud-navy)">{{ estadisticas.totalEquipos }}</h3>
+          <p class="text-xs text-gray-400 m-0">Bienes patrimoniales</p>
+        </div>
+      </div>
+
+      <!-- Papeletas -->
+      <div class="stat-card flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+             style="background:var(--essalud-blue)">
+          <i class="bi bi-file-earmark-text-fill text-white text-2xl"></i>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 m-0">Papeletas</p>
+          <h3 class="text-3xl font-bold m-0" style="color:var(--essalud-navy)">{{ estadisticas.totalPapeletas }}</h3>
+          <p class="text-xs text-gray-400 m-0">Formularios emitidos</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div class="stat-card flex flex-col h-full">
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-800 m-0 flex items-center gap-2">
+              <span class="w-9 h-9 rounded-xl inline-flex items-center justify-center" style="background:var(--essalud-blue-soft); color:var(--essalud-blue)">
+                <i class="bi bi-bar-chart-fill"></i>
+              </span>
+              Distribución General
+            </h3>
+            <p class="text-xs text-slate-400 mt-1 mb-0">Comparativo de registros activos</p>
+          </div>
+        </div>
+        <div class="dashboard-chart relative w-full flex-1">
+          <canvas id="chartEstadisticas"></canvas>
+        </div>
+      </div>
+      <div class="stat-card flex flex-col justify-center items-center gap-4"
+           style="background:#fff">
+        <div class="w-20 h-20 rounded-full flex items-center justify-center"
+             style="background:var(--essalud-blue)">
+          <i class="bi bi-hospital text-white text-3xl"></i>
+        </div>
+        <div class="text-center">
+          <h3 class="font-bold text-lg" style="color:var(--essalud-navy)">EsSalud</h3>
+          <p class="text-sm text-gray-500">Seguro Social de Salud del Perú</p>
+          <p class="text-xs text-gray-400 mt-2">Sistema de Control Patrimonial v1.0</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage"
+       class="flex items-center gap-2 text-sm rounded-lg px-4 py-3 mt-4 border"
+       style="background:#FEF2F2; border-color:#FECACA; color:#DC2626;">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    {{ errorMessage }}
+  </div>
+</ng-template>

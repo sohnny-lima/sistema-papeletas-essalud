@@ -1,0 +1,416 @@
+<!-- Page Header -->
+<div class="page-header">
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+           style="background:var(--essalud-blue)">
+        <i class="bi bi-file-earmark-text-fill text-white text-lg"></i>
+      </div>
+      <div>
+        <h2 class="!text-xl !font-bold !m-0" style="color:var(--essalud-navy)">Gestión de Papeletas</h2>
+        <p class="text-sm text-gray-500 m-0">Formularios únicos de traslado patrimonial</p>
+      </div>
+    </div>
+    <button class="flex items-center gap-2 text-sm font-semibold text-white px-4 py-2 rounded-xl shadow transition-all hover:opacity-90"
+            style="background:var(--essalud-blue); border:none;"
+            (click)="openModal(true)">
+      <i class="bi bi-plus-circle-fill"></i> Nueva Papeleta
+    </button>
+  </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="isLoading" class="es-loader">
+  <div class="spinner-border" role="status" style="color:var(--essalud-blue)"></div>
+  <span>Cargando papeletas...</span>
+</div>
+
+<!-- Search Bar -->
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5">
+  <div class="es-search flex-1">
+    <select [(ngModel)]="selectedCategory" (change)="applyFilter()" class="category-select">
+      <option value="">Todo</option>
+      <option value="numero_papeleta">N° Papeleta</option>
+      <option value="tipo_formulario">Tipo Formulario</option>
+      <option value="trabajador_origen">Trabajador Origen</option>
+      <option value="trabajador_destino">Trabajador Destino</option>
+      <option value="lugar_origen">Lugar Origen</option>
+      <option value="lugar_destino">Lugar Destino</option>
+      <option value="equipo">Equipo</option>
+    </select>
+    <input type="text" [(ngModel)]="tableSearchText" (keyup.enter)="applyFilter()" placeholder="Buscar por papeleta, trabajador, lugar o equipo..." />
+    <button *ngIf="tableSearchText || selectedCategory" type="button" class="search-clear-btn" (click)="clearSearch()" title="Limpiar búsqueda">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    <button type="button" class="search-btn" (click)="applyFilter()"><i class="bi bi-search"></i></button>
+  </div>
+</div>
+
+<!-- Table (Desktop) -->
+<div *ngIf="!isLoading && papeletas.length > 0; else noData"
+     class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+
+  <!-- Vista Desktop: tabla clásica -->
+  <div class="hidden xl:block overflow-x-auto">
+    <table class="w-full min-w-[1180px] text-sm">
+      <thead>
+        <tr style="background:#007BFF">
+          <th class="text-left text-white font-semibold text-xs uppercase tracking-wider px-4 py-3 whitespace-nowrap">N° Papeleta</th>
+          <th class="text-left text-white font-semibold text-xs uppercase tracking-wider px-4 py-3 whitespace-nowrap">Fecha</th>
+          <th class="text-left text-white font-semibold text-xs uppercase tracking-wider px-4 py-3 whitespace-nowrap">Tipo</th>
+          <th class="text-left text-white font-semibold text-xs uppercase tracking-wider px-4 py-3">Trabajador Origen</th>
+          <th class="text-left text-white font-semibold text-xs uppercase tracking-wider px-4 py-3">Trabajador Destino</th>
+          <th class="text-left text-white font-semibold text-xs uppercase tracking-wider px-4 py-3">Lugar Origen</th>
+          <th class="text-left text-white font-semibold text-xs uppercase tracking-wider px-4 py-3">Lugar Destino</th>
+          <th class="text-left text-white font-semibold text-xs uppercase tracking-wider px-4 py-3">Equipos</th>
+          <th class="text-center text-white font-semibold text-xs uppercase tracking-wider px-4 py-3">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        <tr *ngFor="let p of papeletas" class="hover:bg-blue-50 transition-colors">
+          <td class="px-4 py-3">
+            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold"
+                  style="background:#EEF4FF; color:#007BFF; font-family:monospace">
+              <i class="bi bi-file-earmark-fill" style="font-size:10px"></i>
+              {{ p.numero_papeleta }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ p.fecha | date: 'dd/MM/yyyy' }}</td>
+          <td class="px-4 py-3">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                  style="background:#EFF6FF; color:#1D4ED8">
+              {{ p.tipo_formulario_nombre }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-gray-700">
+            <span class="block">{{ p.trabajador_origen_nombre }}</span>
+          </td>
+          <td class="px-4 py-3 text-gray-700">
+            <span class="block">{{ p.trabajador_destino_nombre }}</span>
+          </td>
+          <td class="px-4 py-3 text-gray-600">
+            <span class="block text-xs">{{ p.lugar_origen_nombre }}</span>
+          </td>
+          <td class="px-4 py-3 text-gray-600">
+            <span class="block text-xs">{{ p.lugar_destino_nombre }}</span>
+          </td>
+          <td class="px-4 py-3">
+            <div class="flex flex-col gap-1">
+              <div *ngFor="let eq of p.equipos_patrimoniales">
+                <span class="inline-block px-2 py-0.5 rounded-lg border text-xs"
+                     style="background:#F8FAFC; border-color:#E2E8F0">
+                  <span class="font-bold text-gray-700" style="font-family:monospace">{{ eq.cod_patrimonial }}</span>
+                  <span class="text-gray-500 ml-1">{{ eq.descripcion }}</span>
+                </span>
+              </div>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-center whitespace-nowrap">
+            <button class="w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all hover:opacity-90 me-1"
+                    style="background:#FFF8E1; border-color:#F59E0B; color:#B45309"
+                    (click)="editPapeleta(p)" title="Editar">
+              <i class="bi bi-pencil-fill text-xs"></i>
+            </button>
+            <button class="w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all hover:opacity-90 me-1"
+                    style="background:#FEF2F2; border-color:#F87171; color:#DC2626"
+                    (click)="deletePapeleta(p.id_papeleta ?? 0)" title="Eliminar">
+              <i class="bi bi-trash-fill text-xs"></i>
+            </button>
+            <button class="w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all hover:opacity-90"
+                    style="background:#EFF6FF; border-color:#93C5FD; color:#1D4ED8"
+                    (click)="p.id_papeleta ? generarPDF(p.id_papeleta) : null" title="Imprimir PDF">
+              <i class="bi bi-printer-fill text-xs"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Vista Mobile: tarjetas -->
+  <div class="xl:hidden divide-y divide-gray-100">
+    <div *ngFor="let p of papeletas" class="p-4 hover:bg-blue-50 transition-colors">
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold"
+              style="background:#EEF4FF; color:#007BFF; font-family:monospace">
+          <i class="bi bi-file-earmark-fill" style="font-size:10px"></i>
+          {{ p.numero_papeleta }}
+        </span>
+        <div class="flex gap-1">
+          <button class="w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all"
+                  style="background:#FFF8E1; border-color:#F59E0B; color:#B45309"
+                  (click)="editPapeleta(p)" title="Editar">
+            <i class="bi bi-pencil-fill text-xs"></i>
+          </button>
+          <button class="w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all"
+                  style="background:#FEF2F2; border-color:#F87171; color:#DC2626"
+                  (click)="deletePapeleta(p.id_papeleta ?? 0)" title="Eliminar">
+            <i class="bi bi-trash-fill text-xs"></i>
+          </button>
+          <button class="w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all"
+                  style="background:#EFF6FF; border-color:#93C5FD; color:#1D4ED8"
+                  (click)="p.id_papeleta ? generarPDF(p.id_papeleta) : null" title="PDF">
+            <i class="bi bi-printer-fill text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+        <div>
+          <span class="text-gray-400 font-medium">Fecha</span>
+          <p class="text-gray-700 font-semibold m-0">{{ p.fecha | date: 'dd/MM/yyyy' }}</p>
+        </div>
+        <div>
+          <span class="text-gray-400 font-medium">Tipo</span>
+          <p class="m-0">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                  style="background:#EFF6FF; color:#1D4ED8">
+              {{ p.tipo_formulario_nombre }}
+            </span>
+          </p>
+        </div>
+        <div class="col-span-2">
+          <span class="text-gray-400 font-medium">Trabajador Origen</span>
+          <p class="text-gray-700 m-0 truncate">{{ p.trabajador_origen_nombre }}</p>
+        </div>
+        <div class="col-span-2">
+          <span class="text-gray-400 font-medium">Trabajador Destino</span>
+          <p class="text-gray-700 m-0 truncate">{{ p.trabajador_destino_nombre }}</p>
+        </div>
+        <div class="col-span-2">
+          <span class="text-gray-400 font-medium">Lugar Origen → Destino</span>
+          <p class="text-gray-600 m-0 truncate">{{ p.lugar_origen_nombre }} → {{ p.lugar_destino_nombre }}</p>
+        </div>
+        <div class="col-span-2" *ngIf="p.equipos_patrimoniales.length > 0">
+          <span class="text-gray-400 font-medium">Equipos ({{ p.equipos_patrimoniales.length }})</span>
+          <div class="flex flex-wrap gap-1 mt-1">
+            <span *ngFor="let eq of p.equipos_patrimoniales"
+                  class="px-2 py-0.5 rounded text-xs border"
+                  style="background:#F8FAFC; border-color:#E2E8F0; font-family:monospace">
+              {{ eq.cod_patrimonial }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #noData>
+  <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+    <i class="bi bi-file-earmark-x text-5xl mb-3" style="color:#CBD5E1"></i>
+    <p class="font-medium">No hay papeletas disponibles</p>
+    <p class="text-sm">Crea la primera papeleta usando el botón superior</p>
+  </div>
+</ng-template>
+
+<!-- Pagination -->
+<div *ngIf="!isLoading && totalItems > 0" class="mt-4">
+  <p class="text-center text-sm text-gray-400 mb-2">
+    Mostrando {{ currentStartIndex }}-{{ currentEndIndex }} de {{ totalItems }} papeletas
+  </p>
+  <div class="es-pagination">
+    <button (click)="goToFirstPage()" [disabled]="currentPage === 1" title="Primera página">
+      <i class="bi bi-skip-start-fill"></i>
+    </button>
+    <button (click)="previousPage()" [disabled]="currentPage === 1" title="Anterior">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+    <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage >= totalPages" title="Siguiente">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+    <button (click)="goToLastPage()" [disabled]="currentPage >= totalPages" title="Última página">
+      <i class="bi bi-skip-end-fill"></i>
+    </button>
+  </div>
+</div>
+
+
+
+
+<!-- Modal Papeleta -->
+<div class="modal fade" id="papeletaModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header es-modal-header">
+        <h5 class="modal-title font-bold">
+          <i class="bi bi-file-earmark-text-fill me-2"></i>
+          {{ papeleta && papeleta.id_papeleta ? 'Editar Papeleta' : 'Nueva Papeleta' }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body p-5">
+        <form>
+          <!-- Info General -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">N° Papeleta</label>
+              <input type="text" class="form-control rounded-xl"
+                     [(ngModel)]="papeleta.numero_papeleta" name="numero_papeleta"
+                     [readonly]="papeleta && papeleta.id_papeleta"
+                     placeholder="Número de papeleta" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Fecha</label>
+              <input type="date" class="form-control rounded-xl"
+                     [(ngModel)]="papeleta.fecha" name="fecha" />
+            </div>
+          </div>
+
+          <!-- Tipo de Formulario -->
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Tipo de Formulario</label>
+            <select class="form-select rounded-xl"
+                    [(ngModel)]="papeleta.id_tipo_formulario" name="id_tipo_formulario">
+              <option [value]="0" disabled>-- Seleccione --</option>
+              <option *ngFor="let tf of tiposFormulario" [value]="tf.id_tipo_formulario">
+                {{ tf.nombre }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Trabajadores (grid) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <!-- Trabajador Origen -->
+            <div class="position-relative">
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Trabajador Origen</label>
+              <input type="text" class="form-control rounded-xl"
+                     [(ngModel)]="papeleta.trabajador_origen_nombre"
+                     name="trabajador_origen_nombre"
+                     placeholder="Buscar por DNI o nombre..."
+                     (input)="onSearchTrabajadorOrigen(papeleta.trabajador_origen_nombre || '')"
+                     (blur)="onBlurTrabajadorOrigen()" />
+              <ul class="list-group position-absolute w-100 mt-1 shadow"
+                  style="max-height:200px; overflow-y:auto; z-index:9999"
+                  *ngIf="filteredTrabajadoresOrigen.length > 0">
+                <li class="list-group-item list-group-item-action py-2"
+                    *ngFor="let t of filteredTrabajadoresOrigen"
+                    (click)="selectTrabajadorOrigen(t)" style="cursor:pointer">
+                  <b>{{ t.nombres }} {{ t.apellido_paterno }} {{ t.apellido_materno }}</b>
+                  <br /><small class="text-muted">DNI: {{ t.numero_identificacion }}</small>
+                </li>
+              </ul>
+            </div>
+            <!-- Trabajador Destino -->
+            <div class="position-relative">
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Trabajador Destino</label>
+              <input type="text" class="form-control rounded-xl"
+                     [(ngModel)]="papeleta.trabajador_destino_nombre"
+                     name="trabajador_destino_nombre"
+                     placeholder="Buscar por DNI o nombre..."
+                     (input)="onSearchTrabajadorDestino(papeleta.trabajador_destino_nombre || '')"
+                     (blur)="onBlurTrabajadorDestino()" />
+              <ul class="list-group position-absolute w-100 mt-1 shadow"
+                  style="max-height:200px; overflow-y:auto; z-index:9999"
+                  *ngIf="filteredTrabajadoresDestino.length > 0">
+                <li class="list-group-item list-group-item-action py-2"
+                    *ngFor="let t of filteredTrabajadoresDestino"
+                    (click)="selectTrabajadorDestino(t)" style="cursor:pointer">
+                  <b>{{ t.nombres }} {{ t.apellido_paterno }} {{ t.apellido_materno }}</b>
+                  <br /><small class="text-muted">DNI: {{ t.numero_identificacion }}</small>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Lugares (grid) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <!-- Lugar Origen -->
+            <div class="position-relative">
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Lugar Origen</label>
+              <input type="text" class="form-control rounded-xl"
+                     [(ngModel)]="lugarOrigenSearch" name="lugar_origen_search"
+                     placeholder="Buscar lugar de origen..."
+                     (input)="onSearchLugarOrigen(lugarOrigenSearch)"
+                     (blur)="onBlurLugarOrigen()" />
+              <ul class="list-group position-absolute w-100 mt-1 shadow"
+                  style="max-height:250px; overflow-y:auto; z-index:9999; border-radius:.5rem"
+                  *ngIf="filteredLugaresOrigen.length > 0">
+                <li *ngFor="let lugar of filteredLugaresOrigen"
+                    class="list-group-item list-group-item-action py-2"
+                    (click)="selectLugarOrigen(lugar)" style="cursor:pointer">
+                  <div class="fw-bold text-dark" style="font-size:.95rem">
+                    <i class="bi bi-geo-alt-fill text-primary me-1"></i>{{ lugar.nombre_ambiente }}
+                  </div>
+                  <small class="text-muted">{{ lugar.dependencia }} &mdash; {{ lugar.centro }}</small>
+                </li>
+              </ul>
+            </div>
+            <!-- Lugar Destino -->
+            <div class="position-relative">
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Lugar Destino</label>
+              <input type="text" class="form-control rounded-xl"
+                     [(ngModel)]="papeleta.lugar_destino_nombre" name="lugar_destino_nombre"
+                     placeholder="Buscar lugar de destino..."
+                     (input)="onSearchLugarDestino(papeleta.lugar_destino_nombre || '')"
+                     (blur)="onBlurLugarDestino()" />
+              <ul class="list-group position-absolute w-100 mt-1 shadow"
+                  style="max-height:250px; overflow-y:auto; z-index:9999; border-radius:.5rem"
+                  *ngIf="filteredLugaresDestino.length > 0">
+                <li *ngFor="let lugar of filteredLugaresDestino"
+                    class="list-group-item list-group-item-action py-2"
+                    (click)="selectLugarDestino(lugar)" style="cursor:pointer">
+                  <div class="fw-bold text-dark" style="font-size:.95rem">
+                    <i class="bi bi-geo-alt-fill text-primary me-1"></i>{{ lugar.nombre_ambiente }}
+                  </div>
+                  <small class="text-muted">{{ lugar.dependencia }} &mdash; {{ lugar.centro }}</small>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Equipos Asociados -->
+          <div class="mb-5">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Equipos Asociados</label>
+            <div class="position-relative">
+              <input type="text" class="form-control rounded-xl"
+                     placeholder="Buscar y seleccionar equipos..." [(ngModel)]="equipoSearchText"
+                     name="equipoSearchText" (input)="onSearch(equipoSearchText)" />
+              <div class="dropdown-menu show mt-2 w-100 shadow"
+                   *ngIf="equipoSearchText.trim().length > 0 && filteredEquipos.length > 0"
+                   style="max-height:200px; overflow-y:auto; position:absolute; z-index:1050">
+                <div *ngFor="let eq of filteredEquipos"
+                     class="dropdown-item d-flex justify-content-between align-items-center"
+                     (click)="addEquipo(eq)" style="cursor:pointer">
+                  <span>{{ eq.displayName }}</span>
+                  <i class="bi bi-plus-circle text-primary"></i>
+                </div>
+              </div>
+            </div>
+            <!-- Equipos seleccionados -->
+            <div class="flex flex-wrap gap-2 mt-3">
+              <span *ngFor="let eq of papeleta.equipos_patrimoniales"
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium text-white"
+                    style="background:var(--essalud-blue)">
+                <span class="font-bold font-mono">{{ eq.cod_patrimonial }}</span>
+                <span>—</span>
+                <span>{{ eq.descripcion }}</span>
+                <button type="button" class="ml-1 opacity-75 hover:opacity-100 transition-opacity"
+                        style="background:none; border:none; color:#fff; padding:0; cursor:pointer"
+                        (click)="removeEquipo(eq.id_equipo)">
+                  <i class="bi bi-x-circle-fill" style="font-size:12px"></i>
+                </button>
+              </span>
+              <span *ngIf="papeleta.equipos_patrimoniales?.length === 0"
+                    class="text-xs text-gray-400 italic">Ningún equipo seleccionado</span>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex justify-end gap-3">
+            <button type="button" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-all"
+                    data-bs-dismiss="modal" style="background:#fff">
+              Cancelar
+            </button>
+            <button type="button" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-lg hover:opacity-90 transition-all"
+                    style="background:var(--essalud-blue); border:none"
+                    (click)="onSubmit()">
+              <i class="bi bi-check-circle-fill me-2"></i> Guardar Papeleta
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

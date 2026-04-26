@@ -1,0 +1,176 @@
+<!-- Page Header -->
+<div class="page-header">
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+           style="background:var(--essalud-blue)">
+        <i class="bi bi-laptop-fill text-white text-lg"></i>
+      </div>
+      <div>
+        <h2 class="!text-xl !font-bold !m-0" style="color:var(--essalud-navy)">Gestión de Equipos</h2>
+        <p class="text-sm text-gray-500 m-0">Inventario de bienes patrimoniales</p>
+      </div>
+    </div>
+    <button class="flex items-center gap-2 text-sm font-semibold text-white px-4 py-2 rounded-xl shadow transition-all hover:opacity-90"
+            style="background:var(--essalud-blue); border:none;"
+            (click)="resetForm(); openModal()">
+      <i class="bi bi-plus-circle-fill"></i> Agregar Equipo
+    </button>
+  </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="isLoading" class="es-loader">
+  <div class="spinner-border" role="status" style="color:var(--essalud-blue)"></div>
+  <span>Cargando equipos...</span>
+</div>
+
+<!-- Search Bar -->
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5">
+  <div class="es-search flex-1">
+    <select class="category-select" [(ngModel)]="selectedCategory" (change)="applyFilter()">
+      <option value="">Todo</option>
+      <option value="cod_patrimonial">Código Patrimonial</option>
+      <option value="descripcion">Descripción</option>
+      <option value="marca">Marca</option>
+      <option value="serie">Serie</option>
+      <option value="modelo">Modelo</option>
+    </select>
+    <input type="text" placeholder="Buscar por código, descripción, marca, serie o modelo..." [(ngModel)]="searchText" (keyup.enter)="applyFilter()" />
+    <button *ngIf="searchText || selectedCategory" type="button" class="search-clear-btn" (click)="clearSearch()" title="Limpiar búsqueda">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    <button type="button" class="search-btn" (click)="applyFilter()"><i class="bi bi-search"></i></button>
+  </div>
+</div>
+
+<!-- Table -->
+<div *ngIf="!isLoading && equipos.length > 0; else noData"
+     class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+  <div class="overflow-x-auto">
+    <table class="es-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cód. Patrimonial</th>
+          <th>Descripción</th>
+          <th>Marca</th>
+          <th>Serie</th>
+          <th>Modelo</th>
+          <th class="text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let equipo of equipos">
+          <td>
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold text-white"
+                  style="background:var(--essalud-blue)">{{ equipo.id_equipo }}</span>
+          </td>
+          <td>
+            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold"
+                  style="background:#EFF6FF; color:#1E40AF; font-family:monospace">
+              {{ equipo.cod_patrimonial }}
+            </span>
+          </td>
+          <td class="font-medium text-gray-800">{{ equipo.descripcion }}</td>
+          <td class="text-gray-600">{{ equipo.marca }}</td>
+          <td class="text-gray-500 text-xs font-mono">{{ equipo.serie }}</td>
+          <td class="text-gray-600">{{ equipo.modelo }}</td>
+          <td class="text-center">
+            <button class="w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all hover:opacity-90 me-1"
+                    style="background:#FFF8E1; border-color:#F59E0B; color:#B45309"
+                    (click)="editEquipo(equipo)" title="Editar">
+              <i class="bi bi-pencil-fill text-xs"></i>
+            </button>
+            <button class="w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all hover:opacity-90"
+                    style="background:#FEF2F2; border-color:#F87171; color:#DC2626"
+                    (click)="deleteEquipo(equipo.id_equipo ?? 0)" title="Eliminar">
+              <i class="bi bi-trash-fill text-xs"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<ng-template #noData>
+  <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+    <i class="bi bi-laptop text-5xl mb-3" style="color:#CBD5E1"></i>
+    <p class="font-medium">No hay equipos disponibles</p>
+    <p class="text-sm">Agrega el primer equipo usando el botón superior</p>
+  </div>
+</ng-template>
+
+<!-- Pagination -->
+<div *ngIf="!isLoading && totalItems > 0" class="mt-4">
+  <p class="text-center text-sm text-gray-400 mb-2">
+    Mostrando {{ currentStartIndex }}-{{ currentEndIndex }} de {{ totalItems }} equipos
+  </p>
+  <div class="es-pagination">
+    <button (click)="goToFirstPage()" [disabled]="currentPage === 1" title="Primera página">
+      <i class="bi bi-skip-start-fill"></i>
+    </button>
+    <button (click)="previousPage()" [disabled]="currentPage === 1" title="Anterior">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+    <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage >= totalPages" title="Siguiente">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+    <button (click)="goToLastPage()" [disabled]="currentPage >= totalPages" title="Última página">
+      <i class="bi bi-skip-end-fill"></i>
+    </button>
+  </div>
+</div>
+
+<!-- Modal Agregar/Editar Equipo -->
+<div class="modal fade" id="equipoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header es-modal-header">
+        <h5 class="modal-title font-bold">
+          <i class="bi bi-laptop-fill me-2"></i>
+          {{ equipo && equipo.id_equipo ? 'Editar Equipo' : 'Agregar Equipo' }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body p-5">
+        <form>
+          <div class="mb-4">
+            <label for="codPatrimonial" class="block text-sm font-semibold text-gray-700 mb-1">Código Patrimonial</label>
+            <input type="text" class="form-control rounded-xl font-mono" id="codPatrimonial"
+                   [(ngModel)]="equipo.cod_patrimonial" name="cod_patrimonial" required />
+          </div>
+          <div class="mb-4">
+            <label for="descripcion" class="block text-sm font-semibold text-gray-700 mb-1">Descripción</label>
+            <input type="text" class="form-control rounded-xl" id="descripcion"
+                   [(ngModel)]="equipo.descripcion" name="descripcion" required />
+          </div>
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div>
+              <label for="marca" class="block text-sm font-semibold text-gray-700 mb-1">Marca</label>
+              <input type="text" class="form-control rounded-xl" id="marca"
+                     [(ngModel)]="equipo.marca" name="marca" required />
+            </div>
+            <div>
+              <label for="modelo" class="block text-sm font-semibold text-gray-700 mb-1">Modelo</label>
+              <input type="text" class="form-control rounded-xl" id="modelo"
+                     [(ngModel)]="equipo.modelo" name="modelo" required />
+            </div>
+          </div>
+          <div class="mb-5">
+            <label for="serie" class="block text-sm font-semibold text-gray-700 mb-1">Serie</label>
+            <input type="text" class="form-control rounded-xl font-mono" id="serie"
+                   [(ngModel)]="equipo.serie" name="serie" required />
+          </div>
+          <button type="button" class="w-full py-3 rounded-xl text-white font-semibold text-sm shadow-lg"
+                  style="background:var(--essalud-blue); border:none"
+                  (click)="onSubmit()">
+            <i class="bi bi-check-circle-fill me-2"></i> Guardar Cambios
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

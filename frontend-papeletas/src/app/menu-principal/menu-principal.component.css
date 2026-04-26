@@ -1,0 +1,6 @@
+/* All layout handled via global styles.css + Tailwind */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}

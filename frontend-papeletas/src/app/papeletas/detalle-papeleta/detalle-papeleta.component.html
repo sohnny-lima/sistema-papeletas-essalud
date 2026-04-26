@@ -1,0 +1,45 @@
+<div class="container mt-4">
+  <div #pdfContent class="card pdf-container">
+    <div class="card-header text-center">
+      <h3>Detalles de la Papeleta</h3>
+    </div>
+    <div class="card-body">
+      <p>
+        <strong>Número de Papeleta:</strong>
+        {{ papeleta.numero_papeleta || "N/A" }}
+      </p>
+      <p>
+        <strong>Fecha:</strong>
+        {{ papeleta.fecha ? (papeleta.fecha | date : "dd/MM/yyyy") : "N/A" }}
+      </p>
+      <p>
+        <strong>Tipo de Formulario:</strong>
+        {{ papeleta.tipo_formulario || "N/A" }}
+      </p>
+      <p>
+        <strong>Trabajador Origen:</strong>
+        {{ papeleta.trabajador_origen || "N/A" }}
+      </p>
+      <p>
+        <strong>Trabajador Destino:</strong>
+        {{ papeleta.trabajador_destino || "N/A" }}
+      </p>
+      <p><strong>Lugar Origen:</strong> {{ papeleta.lugar_origen || "N/A" }}</p>
+      <p>
+        <strong>Lugar Destino:</strong> {{ papeleta.lugar_destino || "N/A" }}
+      </p>
+      <p>
+        <strong>Equipos Asociados:</strong>
+        {{
+          papeleta.equipos_asociados
+            ? papeleta.equipos_asociados.join(", ")
+            : "N/A"
+        }}
+      </p>
+    </div>
+  </div>
+
+  <div class="text-center mt-3">
+    <button class="btn btn-primary" (click)="imprimir()">🖨️ Imprimir</button>
+  </div>
+</div>

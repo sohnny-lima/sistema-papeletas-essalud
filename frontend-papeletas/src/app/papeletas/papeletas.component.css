@@ -1,0 +1,383 @@
+/* General Styles */
+body {
+  font-family: 'Roboto', Arial, sans-serif;
+  background-color: #f8f9fa;
+  color: #343a40;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Title Styling */
+h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  text-align: center;
+  color: #343a40;
+  margin-bottom: 1.5rem;
+}
+
+/* Button Styling */
+.btn-primary {
+  background-color: #00bcd4;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+  background-color: #0097a7;
+}
+
+/* Barra de búsqueda y contenedor */
+.search-bar-container {
+  /* Para centrar y darle un margen (similar al de equipos) */
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 25px;
+  overflow: hidden;
+  max-width: 600px;
+  width: 100%;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 48px;
+}
+
+.category-select {
+  border: 1px solid #e0e0e0;
+  font-size: 0.9rem;
+  background-color: transparent;
+  color: #6c757d;
+  height: 100%;
+  padding: 0 15px;
+  width: 44%;
+  flex: 0 1 auto;
+  box-sizing: content-box;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+  box-shadow: none;
+}
+
+.search-input {
+  border: 1px solid #e0e0e0;
+  padding: 0 15px;
+  font-size: 0.9rem;
+  background-color: transparent;
+  box-shadow: none;
+  height: 100%;
+  flex: 1;
+}
+
+.search-input:focus,
+.category-select:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.search-button {
+  background-color: #00bcd4;
+  border: none;
+  color: #ffffff;
+  font-size: 1.2rem;
+  transition: all 0.3s ease-in-out;
+  height: 100%;
+  width: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-button:hover {
+  background-color: #0097a7;
+}
+
+/* Correcciones globales */
+body, .form-control, .form-select {
+  box-sizing: border-box;
+}
+
+.form-control, .form-select {
+  margin: 0;
+}
+
+/* Table Styling */
+.table {
+  margin-top: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.table th {
+  background-color: #f1f1f1;
+  color: #495057;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.table td {
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  vertical-align: middle;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f0f0f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+/* Action Buttons Styling */
+.btn-warning {
+  background-color: #00A3E0;
+  border: none;
+  color: #ffffff;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+}
+
+.btn-warning:hover {
+  background-color: #0072BC;
+}
+
+.btn-danger {
+  background-color: #f44336;
+  border: none;
+  color: #ffffff;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+}
+
+.btn-danger:hover {
+  background-color: #d32f2f;
+}
+
+/* Tooltip para botones de acción */
+.btn-warning::after,
+.btn-danger::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  background-color: #343a40;
+  color: #ffffff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.btn-warning:hover::after,
+.btn-danger:hover::after {
+  opacity: 1;
+}
+
+/* Pagination Styling */
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pagination .btn {
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  margin: 0 5px;
+  background-color: #f5f5f5;
+  border: none;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.pagination .btn:hover {
+  background-color: #e0e0e0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.pagination .btn[disabled] {
+  background-color: #e9ecef;
+  color: #6c757d;
+  border: none;
+}
+
+.pagination .btn.active {
+  background-color: #00bcd4;
+  color: #ffffff;
+  border: 2px solid #0097a7;
+}
+
+.pagination .btn-first,
+.pagination .btn-last {
+  background-color: #6c757d;
+  color: #ffffff;
+}
+
+/* Modal Styling */
+.modal-content {
+  border-radius: 16px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  background-color: #fafafa;
+}
+
+.modal-header {
+  background-color: #00bcd4;
+  color: #ffffff;
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-body .form-label {
+  font-weight: bold;
+  color: #495057;
+}
+
+.modal-body .form-control {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  padding: 10px 15px;
+  font-size: 1rem;
+  transition: all 0.3s ease-in-out;
+}
+
+.modal-body .form-control:focus {
+  border-color: #00bcd4;
+  box-shadow: 0 0 5px rgba(0, 188, 212, 0.5);
+}
+
+/* Spinner & Loader */
+.spinner-border,
+.loader {
+  width: 3rem;
+  height: 3rem;
+}
+
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader-message {
+  margin-top: 10px;
+  font-size: 1.2rem;
+  color: #343a40;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .search-bar {
+    flex-direction: column;
+    width: 100%;
+  }
+  .search-bar .category-select,
+  .search-bar .search-input,
+  .search-bar .search-button {
+    border-radius: 0;
+    margin: 5px 0;
+  }
+}
+
+
+/* Contenedor de búsqueda con bordes redondeados */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 25px; /* 🔹 Bordes curvos */
+  overflow: hidden; /* 🔹 Asegura que los elementos internos sigan el borde curvo */
+  max-width: 400px;
+  border: 1px solid #ced4da;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Selector de Categoría */
+.category-select {
+  border: 1px solid #e0e0e0;
+  font-size: 0.9rem;
+  background-color: transparent;
+  color: #6c757d;
+  height: 100%;
+  padding: 0 15px;
+  width: 35%;
+  flex: 0 1 auto;
+  box-sizing: content-box;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+  box-shadow: none;
+  
+}
+
+/* Campo de Entrada */
+.search-input {
+  border: none;
+  padding: 10px 15px;
+  font-size: 0.9rem;
+  background-color: transparent;
+  flex: 1;
+  outline: none;
+}
+
+.search-input:focus,
+.category-select:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Botón de Búsqueda */
+.search-button {
+  background-color: #007bff;
+  border: none;
+  color: white;
+  padding: 10px 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 25px 25px 0; /* 🔹 Bordes curvos solo en la derecha */
+}
+
+.search-button i {
+  font-size: 20px;
+}
+.search-button:hover {
+  background-color: #007bff;
+}
+
