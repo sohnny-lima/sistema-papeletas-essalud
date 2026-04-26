@@ -1,0 +1,85 @@
+<div class="layout-wrapper">
+  <!-- ── HEADER ── -->
+  <header class="admin-navbar flex items-center justify-between px-4 sm:px-6 flex-shrink-0">
+    <!-- Hamburger (All screens) -->
+    <button class="admin-menu-btn p-2 rounded-lg transition-colors flex items-center justify-center"
+            (click)="toggleSidebar()">
+      <i class="bi bi-list text-2xl"></i>
+    </button>
+    
+    <!-- Title Centered -->
+    <div class="flex-1 flex justify-center">
+      <h1 class="text-base sm:text-lg font-bold text-white tracking-wide m-0">FORMULARIO ÚNICO PATRIMONIAL</h1>
+    </div>
+
+    <!-- Empty div for flex spacing -->
+    <div class="w-10"></div>
+  </header>
+
+  <div class="layout-body">
+    <!-- ── SIDEBAR ── -->
+    <nav class="sidebar" [class.collapsed]="isCollapsed" [class.mobile-open]="!isCollapsed">
+      <!-- Logo -->
+      <div class="sidebar-brand flex items-center justify-center py-4 border-b">
+        <div class="sidebar-logo-box w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
+          <img src="assets/logo.png" alt="EsSalud" class="w-10 h-10 object-contain p-1"
+               onerror="this.style.display='none'" />
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <ul class="nav flex-column mt-3 px-1 flex-grow-1">
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/menu-principal/dashboard']" routerLinkActive="active" (click)="closeSidebarOnMobile()">
+            <i class="bi bi-speedometer2"></i>
+            <span class="link-text">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/menu-principal/equipos']" routerLinkActive="active" (click)="closeSidebarOnMobile()">
+            <i class="bi bi-laptop"></i>
+            <span class="link-text">Equipos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/menu-principal/lugares']" routerLinkActive="active" (click)="closeSidebarOnMobile()">
+            <i class="bi bi-geo-alt"></i>
+            <span class="link-text">Lugares</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/menu-principal/papeletas']" routerLinkActive="active" (click)="closeSidebarOnMobile()">
+            <i class="bi bi-file-earmark-text"></i>
+            <span class="link-text">Papeletas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/menu-principal/trabajadores']" routerLinkActive="active" (click)="closeSidebarOnMobile()">
+            <i class="bi bi-people"></i>
+            <span class="link-text">Trabajadores</span>
+          </a>
+        </li>
+      </ul>
+
+      <!-- Logout (bottom) -->
+      <div class="mt-auto border-t" [ngClass]="isCollapsed ? 'p-2' : 'p-4'" style="border-color:rgba(255,255,255,0.1)">
+        <button (click)="logout()"
+                class="sidebar-logout w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-medium transition-all"
+                [ngClass]="isCollapsed ? 'px-0' : 'px-4'">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="link-text" *ngIf="!isCollapsed">Cerrar Sesión</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ── MAIN CONTENT ── -->
+    <main class="main-container">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    © <strong>SliSoft</strong> | 2025 — Todos los Derechos Reservados.
+  </footer>
+</div>

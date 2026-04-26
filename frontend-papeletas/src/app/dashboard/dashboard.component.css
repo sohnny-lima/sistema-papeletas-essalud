@@ -1,0 +1,50 @@
+
+.container {
+  
+  min-height: 100vh;
+  padding: 30px;
+  border-radius: 10px;
+}
+
+h2 {
+  color: #ffffff;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.card {
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+
+.card:hover {
+  transform: scale(1.05);
+}
+
+.dashboard-chart {
+  min-height: 300px;
+}
+
+.dashboard-chart canvas {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  padding: 8px;
+  border-radius: 14px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #005b96;
+}
+
+.alert {
+  font-size: 1.2em;
+  font-weight: bold;
+}

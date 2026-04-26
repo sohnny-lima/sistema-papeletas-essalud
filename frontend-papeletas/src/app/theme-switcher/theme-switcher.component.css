@@ -1,0 +1,24 @@
+
+.theme-option:hover {
+  background-color: #f0f0f0; /* Un fondo suave al pasar el mouse */
+  color: #0056b3; /* Color de texto al pasar el mouse */
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Estilo específico para el botón de dropdown */
+#bd-theme {
+  border: none; /* Sin borde para un look más limpio */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+#bd-theme:hover {
+  background-color: #0056b3; /* Cambia el color de fondo al pasar el mouse */
+  transform: scale(1.05); /* Hace un poco más grande el botón al pasar el mouse */
+}
+
+/* Hacer que el menú desplegable sea más visible */
+.dropdown-menu {
+  border-radius: 8px; /* Bordes redondeados */
+  padding: 0.5em 1em; /* Espaciado adicional dentro del menú */
+}

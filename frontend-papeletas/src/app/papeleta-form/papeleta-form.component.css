@@ -1,0 +1,20 @@
+/* Estilos para el formulario */
+h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+section {
+  margin-bottom: 24px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+button {
+  margin-right: 10px;
+  margin-top: 10px;
+}

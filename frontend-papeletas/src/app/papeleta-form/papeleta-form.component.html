@@ -1,0 +1,135 @@
+<h2>Formulario Único Patrimonial</h2>
+<form (ngSubmit)="guardarDatos()" (reset)="limpiarFormulario()">
+  <section>
+    <h3>I. Formato</h3>
+    <label>
+      <input
+        type="checkbox"
+        [(ngModel)]="formularioPapeleta.formato.tomaInventario"
+        name="tomaInventario"
+      />
+      Toma de Inventario
+    </label>
+    <label>
+      <input
+        type="checkbox"
+        [(ngModel)]="formularioPapeleta.formato.cuadroAsignacion"
+        name="cuadroAsignacion"
+      />
+      Cuadro de Asignación
+    </label>
+    <label>
+      <input
+        type="checkbox"
+        [(ngModel)]="formularioPapeleta.formato.desplazamiento"
+        name="desplazamiento"
+      />
+      Desplazamiento
+    </label>
+  </section>
+
+  <section>
+    <h3>II. Datos del Origen / Asignación</h3>
+    <label>
+      Trabajador:
+      <input
+        type="text"
+        [(ngModel)]="formularioPapeleta.datosOrigen.trabajador"
+        name="trabajadorOrigen"
+        placeholder="Nombre del Trabajador"
+      />
+    </label>
+    <label>
+      Dependencia:
+      <input
+        type="text"
+        [(ngModel)]="formularioPapeleta.datosOrigen.dependencia"
+        name="dependenciaOrigen"
+        placeholder="Dependencia"
+      />
+    </label>
+    <label>
+      Ambiente:
+      <input
+        type="text"
+        [(ngModel)]="formularioPapeleta.datosOrigen.ambiente"
+        name="ambienteOrigen"
+        placeholder="Ambiente"
+      />
+    </label>
+  </section>
+
+  <section>
+    <h3>III. Datos de los Bienes</h3>
+    <div *ngFor="let bien of formularioPapeleta.datosBienes; let i = index">
+      <label>
+        Código Patrimonial:
+        <input
+          type="text"
+          [(ngModel)]="bien.codigoPatrimonial"
+          [name]="'codigoPatrimonial' + i"
+        />
+      </label>
+      <label>
+        Descripción:
+        <input
+          type="text"
+          [(ngModel)]="bien.descripcion"
+          [name]="'descripcion' + i"
+        />
+      </label>
+      <label>
+        Marca:
+        <input type="text" [(ngModel)]="bien.marca" [name]="'marca' + i" />
+      </label>
+      <label>
+        Serie:
+        <input type="text" [(ngModel)]="bien.serie" [name]="'serie' + i" />
+      </label>
+      <label>
+        Modelo:
+        <input type="text" [(ngModel)]="bien.modelo" [name]="'modelo' + i" />
+      </label>
+      <label>
+        Estado:
+        <input type="text" [(ngModel)]="bien.estado" [name]="'estado' + i" />
+      </label>
+      <hr />
+    </div>
+    <button type="button" (click)="agregarBien()">Agregar Bien</button>
+  </section>
+
+  <section>
+    <h3>IV. Datos del Destino</h3>
+    <label>
+      Trabajador:
+      <input
+        type="text"
+        [(ngModel)]="formularioPapeleta.datosDestino.trabajador"
+        name="trabajadorDestino"
+        placeholder="Nombre del Trabajador"
+      />
+    </label>
+    <label>
+      Dependencia:
+      <input
+        type="text"
+        [(ngModel)]="formularioPapeleta.datosDestino.dependencia"
+        name="dependenciaDestino"
+        placeholder="Dependencia"
+      />
+    </label>
+    <label>
+      Ambiente:
+      <input
+        type="text"
+        [(ngModel)]="formularioPapeleta.datosDestino.ambiente"
+        name="ambienteDestino"
+        placeholder="Ambiente"
+      />
+    </label>
+  </section>
+
+  <button type="submit" class="btn btn-primary">Guardar Datos</button>
+  <button type="reset" class="btn btn-secondary">Limpiar</button>
+</form>
