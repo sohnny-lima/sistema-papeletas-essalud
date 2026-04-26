@@ -1,11 +1,10 @@
 const pool = require('../config/database');
 const { successResponse, errorResponse } = require('../utils/responseHandler');
+const { getPagination } = require('../utils/pagination');
 
 // Obtener equipos con paginación y filtros
 const getAllEquipos = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const pageSize = parseInt(req.query.pageSize) || 10;
-  const offset = (page - 1) * pageSize;
+  const { page, pageSize, offset } = getPagination(req.query);
   const category = req.query.category || '';
   const filterText = (req.query.filterText || '').trim();
 
@@ -106,7 +105,19 @@ const createEquipo = async (req, res) => {
       .json({ success: false, message: 'Todos los campos del equipo son obligatorios.' });
   }
 
+  if (!/^\d{4,20}$/.test(cod_patrimonial)) {
+    return res.status(400).json({ success: false, message: 'El código patrimonial debe tener entre 4 y 20 dígitos.' });
+  }
+
   try {
+    const duplicate = await pool.query(
+      'SELECT 1 FROM equipos WHERE cod_patrimonial = $1 LIMIT 1',
+      [cod_patrimonial]
+    );
+    if (duplicate.rows.length > 0) {
+      return res.status(409).json({ success: false, message: 'Ya existe un equipo con ese código patrimonial.' });
+    }
+
     const query = `
       INSERT INTO equipos (cod_patrimonial, descripcion, marca, serie, modelo)
       VALUES ($1, $2, $3, $4, $5)
@@ -136,7 +147,19 @@ const updateEquipo = async (req, res) => {
       .json({ success: false, message: 'Todos los campos del equipo son obligatorios.' });
   }
 
+  if (!/^\d{4,20}$/.test(cod_patrimonial)) {
+    return res.status(400).json({ success: false, message: 'El código patrimonial debe tener entre 4 y 20 dígitos.' });
+  }
+
   try {
+    const duplicate = await pool.query(
+      'SELECT 1 FROM equipos WHERE cod_patrimonial = $1 AND id_equipo <> $2 LIMIT 1',
+      [cod_patrimonial, id]
+    );
+    if (duplicate.rows.length > 0) {
+      return res.status(409).json({ success: false, message: 'Ya existe otro equipo con ese código patrimonial.' });
+    }
+
     const query = `
       UPDATE equipos 
       SET cod_patrimonial = $1, descripcion = $2, marca = $3, serie = $4, modelo = $5
