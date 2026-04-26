@@ -87,8 +87,8 @@ const updateUsuario = async (req, res) => {
             params.push(hashedPassword);
         }
 
-        query += ' WHERE id_usuario = $4 RETURNING id_usuario, nombre_usuario, id_rol';
         params.push(id);
+        query += ` WHERE id_usuario = $${params.length} RETURNING id_usuario, nombre_usuario, id_rol`;
 
         const result = await pool.query(query, params);
 

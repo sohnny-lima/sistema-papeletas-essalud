@@ -1,11 +1,10 @@
 const pool = require('../config/database');
 const { successResponse, errorResponse } = require('../utils/responseHandler');
+const { getPagination } = require('../utils/pagination');
 
 // Obtener trabajadores con paginación y filtros
 const getAllTrabajadores = async (req, res) => {
-    const page = parseInt(req.query.page) || 1;
-    const pageSize = parseInt(req.query.pageSize) || 10;
-    const offset = (page - 1) * pageSize;
+    const { page, pageSize, offset } = getPagination(req.query);
     const category = req.query.category || '';
     const filterText = (req.query.filterText || '').trim();
 
@@ -96,7 +95,19 @@ const createTrabajador = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Todos los campos son obligatorios.' });
     }
 
+    if (!/^\d{8,12}$/.test(numero_identificacion)) {
+        return res.status(400).json({ success: false, message: 'El DNI/identificación debe tener entre 8 y 12 dígitos.' });
+    }
+
     try {
+        const duplicate = await pool.query(
+            'SELECT 1 FROM trabajadores WHERE numero_identificacion = $1 LIMIT 1',
+            [numero_identificacion]
+        );
+        if (duplicate.rows.length > 0) {
+            return res.status(409).json({ success: false, message: 'Ya existe un trabajador con ese DNI/identificación.' });
+        }
+
         const query = `
             INSERT INTO trabajadores (nombres, apellido_paterno, apellido_materno, numero_identificacion)
             VALUES ($1, $2, $3, $4) RETURNING *
@@ -122,7 +133,19 @@ const updateTrabajador = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Todos los campos son obligatorios.' });
     }
 
+    if (!/^\d{8,12}$/.test(numero_identificacion)) {
+        return res.status(400).json({ success: false, message: 'El DNI/identificación debe tener entre 8 y 12 dígitos.' });
+    }
+
     try {
+        const duplicate = await pool.query(
+            'SELECT 1 FROM trabajadores WHERE numero_identificacion = $1 AND id_trabajador <> $2 LIMIT 1',
+            [numero_identificacion, id]
+        );
+        if (duplicate.rows.length > 0) {
+            return res.status(409).json({ success: false, message: 'Ya existe otro trabajador con ese DNI/identificación.' });
+        }
+
         const query = `
             UPDATE trabajadores 
             SET nombres = $1, apellido_paterno = $2, apellido_materno = $3, numero_identificacion = $4
