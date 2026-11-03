@@ -115,6 +115,9 @@ async function main() {
         await linkMenu.waitFor({ state: 'visible', timeout: 5000 });
         await linkMenu.click();
         await page.waitForURL('**/menu-principal/centros', { timeout: 5000 });
+        // CI 03/11/2026: contar solo cuando la lista ya llegó de la API (tabla o estado vacío), no durante la carga.
+        await page.locator('table.es-table tbody tr, .es-state').first().waitFor({ state: 'visible', timeout: 10000 });
+        await page.locator('.es-loader').waitFor({ state: 'hidden', timeout: 10000 });
 
         const filasIniciales = await page.locator('table.es-table tbody tr').count();
 
