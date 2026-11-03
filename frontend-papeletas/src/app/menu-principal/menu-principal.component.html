@@ -34,7 +34,7 @@
       <div class="sidebar-brand flex items-center justify-center py-4 border-b">
         <div class="sidebar-logo-box w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
           <img src="assets/logo.png" alt="EsSalud" class="w-10 h-10 object-contain p-1"
-            onerror="this.style.display='none'" />
+            (error)="$any($event.target).style.display = 'none'" />
           </div>
         </div>
 
