@@ -1,15 +1,15 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
-  imports: [FormsModule, CommonModule]
+    selector: 'app-login',
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [FormsModule, CommonModule]
 })
 export class LoginComponent {
   nombreUsuario: string = '';
@@ -20,51 +20,53 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
-    private router: Router
-  ) {}
+    private route: ActivatedRoute
+  ) {
+    const sesion = this.route.snapshot.queryParamMap.get('sesion');
+    if (sesion === 'caducada') {
+      this.errorMessage = 'Su sesión ha caducado. Vuelva a iniciar sesión.';
+    } else if (sesion === 'clave-cambiada') {
+      // U3: aviso informativo, no un error, tras cambiar la propia contraseña.
+      this.successMessage = 'Contraseña actualizada. Inicie sesión con la nueva.';
+    } else if (sesion === 'otra-pestana') {
+      // Mismo perfil del navegador: otra pestaña cerró la sesión compartida.
+      this.successMessage = 'La sesión se cerró en otra pestaña.';
+    }
+  }
 
   toggleMostrarContrasena(): void {
     this.mostrarContrasena = !this.mostrarContrasena;
   }
 
   onSubmit(): void {
-    console.log('Iniciando sesión con:', this.nombreUsuario);
-
-    // Validar si los campos están vacíos
-    if (!this.nombreUsuario || !this.contrasena) {
-      this.errorMessage = 'Por favor, ingresa tu usuario y contraseña.';
-      this.successMessage = ''; // Limpiar mensaje de éxito
-      this.ocultarAlerta();
+    this.errorMessage = '';
+    this.successMessage = '';
+    if (!this.nombreUsuario.trim() || !this.contrasena) {
+      this.errorMessage = 'Complete el usuario y la contraseña.';
       return;
     }
-
-    // Simulación de autenticación
-    this.authService.login(this.nombreUsuario, this.contrasena).subscribe({
+    // Los nombres no admiten espacios en los extremos: un espacio pegado no debe contar como intento fallido.
+    this.authService.login(this.nombreUsuario.trim(), this.contrasena).subscribe({
       next: () => {
-        console.log('Inicio de sesión exitoso, navegando al menú principal');
+        // AuthService guarda el token y realiza la única navegación.
         this.successMessage = 'Inicio de sesión exitoso. Redirigiendo...';
-        this.errorMessage = ''; // Limpiar mensaje de error
-        this.ocultarAlerta();
-
-        // Simulación de redirección después de 2 segundos
-        setTimeout(() => {
-          this.router.navigate(['/menu-principal']);
-        }, 2000);
       },
       error: (error: any) => {
-        console.error('Error de inicio de sesión:', error);
-        this.errorMessage = 'Credenciales incorrectas. Inténtalo nuevamente.';
-        this.successMessage = ''; // Limpiar mensaje de éxito
-        this.ocultarAlerta();
+        if (error.status === 401) {
+          this.errorMessage = 'Usuario o contraseña incorrectos.';
+        } else if (error.status === 403) {
+          // U2: solo llega con la clave correcta de una cuenta desactivada.
+          this.errorMessage = 'La cuenta está desactivada. Contacte con un administrador.';
+        } else if (error.status === 429) {
+          this.errorMessage = 'Demasiados intentos. Espere unos minutos.';
+        } else if (error.status === 400) {
+          this.errorMessage = 'Complete el usuario y la contraseña.';
+        } else if ([0, 502, 503, 504].includes(error.status)) {
+          this.errorMessage = 'No se pudo conectar con el servidor. Compruebe su conexión e inténtelo nuevamente.';
+        } else {
+          this.errorMessage = 'No se pudo iniciar sesión. Inténtelo más tarde.';
+        }
       }
     });
-  }
-
-  // Ocultar alertas después de 3 segundos
-  ocultarAlerta(): void {
-    setTimeout(() => {
-      this.errorMessage = '';
-      this.successMessage = '';
-    }, 3000);
   }
 }

@@ -1,22 +1,36 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, ChangeDetectionStrategy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { Router } from '@angular/router';
+import { VERSION_APLICACION } from '../version';
 
 @Component({
-  selector: 'app-menu-principal',
-  standalone: true,
-  templateUrl: './menu-principal.component.html',
-  styleUrls: ['./menu-principal.component.css'],
-  imports: [CommonModule, RouterModule]
+    selector: 'app-menu-principal',
+    templateUrl: './menu-principal.component.html',
+    styleUrls: ['./menu-principal.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [CommonModule, RouterModule]
 })
 export class MenuPrincipalComponent implements OnInit {
   isCollapsed = false; // Controla el estado del sidebar
+  /** Versión mostrada en el pie (misma que APP_VERSION de las imágenes). */
+  readonly version = VERSION_APLICACION;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  /** U3: usuario y rol de la sesión para el indicador del encabezado (informativo). */
+  readonly sesion = computed(() => this.authService.sesion());
+  /** Menú e indicador usan la misma fuente (la sesión confirmada); la API comprueba el rol. */
+  private readonly esAdminSesion = computed(() => this.sesion()?.rol === 'admin');
+  get esAdmin(): boolean { return this.esAdminSesion(); }
+  readonly descripcionSesion = computed(() => {
+    const s = this.sesion();
+    return s ? `Sesión iniciada como ${s.nombreUsuario}, ${s.rolNombre}` : '';
+  });
+
+  constructor(private authService: AuthService) {}
 
   ngOnInit() {
+    // Confirma usuario y rol con el servidor; el token ya da un valor inicial.
+    this.authService.refrescarSesion();
     this.syncSidebarWithViewport();
   }
 
@@ -40,8 +54,6 @@ export class MenuPrincipalComponent implements OnInit {
   }
 
   logout() {
-    console.log('Logout initiated');
     this.authService.logout();
-    this.router.navigate(['/login']);
   }
 }

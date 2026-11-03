@@ -1,0 +1,110 @@
+/* Ajustes puntuales sobre las clases globales es-* de styles.css */
+.es-texto-literal {
+  text-transform: none !important;
+}
+
+.es-usuario-celda {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.es-chip {
+  justify-self: start;
+  width: fit-content;
+}
+
+.es-chip--admin {
+  border-color: #93c5fd;
+  background: #dbeafe;
+  color: #1e3a8a;
+}
+
+.es-chip--admin i {
+  color: #1d4ed8;
+}
+
+.es-chip--activo {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.es-chip--activo i {
+  color: #059669;
+}
+
+.es-chip--inactivo {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.es-chip--inactivo i {
+  color: #64748b;
+}
+
+.es-chip--sesion {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1e40af;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+}
+
+.es-input-clave {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.es-input-clave .form-control {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.es-input-clave .es-btn {
+  flex-shrink: 0;
+}
+
+.es-btn--peligro-suave {
+  background: #fff;
+  color: var(--es-peligro);
+  border-color: var(--es-peligro-borde);
+}
+
+.es-btn--peligro-suave:hover:not(:disabled) {
+  background: var(--es-peligro-suave);
+  border-color: var(--es-peligro);
+}
+
+.modal .form-select:disabled,
+.modal .form-control:disabled {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: var(--es-texto-2, #475569);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .es-table.es-table--apilada .es-chip {
+    justify-self: start;
+    width: fit-content;
+  }
+
+  .es-input-clave {
+    flex-wrap: wrap;
+  }
+
+  .es-input-clave .form-control,
+  .es-input-clave .es-btn {
+    flex: 1 1 100%;
+  }
+
+  .es-acciones {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}

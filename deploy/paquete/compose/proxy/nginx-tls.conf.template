@@ -1,0 +1,52 @@
+# Proxy HTTPS del paquete (compose.prod.tls.yml). Termina TLS y reenvía al frontend por la red interna.
+# Plantilla: el entrypoint de Nginx sustituye ${HTTPS_PUERTO_PUBLICO} y escribe /tmp/nginx-tls.conf.
+worker_processes auto;
+pid /tmp/nginx-proxy.pid;
+error_log /dev/stderr warn;
+events { worker_connections 1024; }
+http {
+    server_tokens off;
+    access_log off;
+    client_body_temp_path /tmp/cuerpo;
+    proxy_temp_path /tmp/proxy;
+    fastcgi_temp_path /tmp/fastcgi;
+    uwsgi_temp_path /tmp/uwsgi;
+    scgi_temp_path /tmp/scgi;
+    client_max_body_size 100k;
+    # DNS de Docker: vuelve a resolver el frontend si se recrea (nueva IP).
+    resolver 127.0.0.11 valid=10s ipv6=off;
+
+    # HTTP solo redirige a HTTPS (y responde a la sonda de salud del contenedor).
+    server {
+        listen 8080;
+        location = /salud { return 200 'activo'; }
+        location / {
+            set $puerto ":${HTTPS_PUERTO_PUBLICO}";
+            if ($puerto = ":443") { set $puerto ""; }
+            return 301 https://$host$puerto$request_uri;
+        }
+    }
+
+    server {
+        listen 8443 ssl;
+        http2 on;
+        ssl_certificate     /run/secrets/tls_certificado;
+        ssl_certificate_key /run/secrets/tls_clave;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_prefer_server_ciphers off;
+        ssl_session_cache shared:TLS:5m;
+        ssl_session_timeout 1h;
+        add_header Strict-Transport-Security "max-age=31536000" always;
+
+        location / {
+            set $frontend http://frontend:8080;
+            proxy_pass $frontend;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header Connection "";
+            proxy_read_timeout 35s;
+        }
+    }
+}

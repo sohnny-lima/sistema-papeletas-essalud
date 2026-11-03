@@ -1,6 +1,7 @@
-import { Component, OnInit, AfterViewInit, NgZone } from '@angular/core';
+import { Component, OnInit, AfterViewInit, NgZone, ChangeDetectionStrategy } from '@angular/core';
 import { BackendService } from '../services/backend.service';
-import { CommonModule } from '@angular/common';
+import { finalize } from 'rxjs';
+
 import { FormsModule } from '@angular/forms';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -14,11 +15,11 @@ interface Estadisticas {
 }
 
 @Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css'],
-  imports: [CommonModule, FormsModule]
+    selector: 'app-dashboard',
+    templateUrl: './dashboard.component.html',
+    styleUrls: ['./dashboard.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [FormsModule]
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
   estadisticas: Estadisticas | null = null;
@@ -30,21 +31,17 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   constructor(private backendService: BackendService, private ngZone: NgZone) {}
 
   ngOnInit(): void {
-    console.log('✅ Dashboard Component Loaded');
     this.cargarEstadisticas();
   }
 
   ngAfterViewInit(): void {
-    console.log('⏳ Esperando que el DOM se cargue completamente...');
   }
 
   cargarEstadisticas(): void {
     this.cargando = true;
-    console.log("📡 Solicitando estadísticas al backend...");
 
-    this.backendService.getEstadisticas().subscribe({
+    this.backendService.getEstadisticas().pipe(finalize(() => { this.cargando = false; })).subscribe({
       next: (response: any) => {
-        console.log("📊 Datos recibidos:", response);
 
         if (response.success && response.data) {
           this.estadisticas = {
@@ -61,7 +58,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.cargando = false;
       },
       error: (error: any) => {
-        console.error("❌ Error al cargar estadísticas:", error);
         this.errorMessage = "🚨 No se pudieron cargar las estadísticas. Inténtelo más tarde.";
         this.cargando = false;
       }
@@ -72,14 +68,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     let canvas = document.getElementById("chartEstadisticas") as HTMLCanvasElement;
 
     if (!canvas) {
-      console.error("🚨 Error: No se encontró el elemento <canvas> con id='chartEstadisticas'");
       return;
     }
 
     let ctx = canvas.getContext("2d");
 
     if (!ctx) {
-      console.error("🚨 Error: No se pudo obtener el contexto del canvas.");
       return;
     }
 
@@ -196,8 +190,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         }
       });
     });
-
-    console.log("✅ Gráfico 'chartEstadisticas' renderizado correctamente");
   }
 
   private createBarGradient(ctx: CanvasRenderingContext2D, from: string, to: string): CanvasGradient {

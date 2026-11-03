@@ -1,0 +1,12 @@
+# Los guiones de shell deben conservar LF en cualquier copia (Windows incluido): con CRLF fallan en Linux.
+*.sh text eol=lf
+# Binarios: sin conversión de finales de línea (core.autocrlf alteraría su contenido).
+*.pdf binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.dump binary
+*.tar binary
+*.gz binary

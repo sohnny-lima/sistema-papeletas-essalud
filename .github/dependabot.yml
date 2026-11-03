@@ -1,0 +1,40 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /backend-papeletas
+    schedule:
+      interval: weekly
+    groups:
+      npm-backend:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /frontend-papeletas
+    schedule:
+      interval: weekly
+    groups:
+      npm-frontend:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /docs/revision/pruebas/e2e
+    schedule:
+      interval: weekly
+    groups:
+      npm-e2e:
+        patterns: ['*']
+  - package-ecosystem: docker
+    directories:
+      - /backend-papeletas
+      - /frontend-papeletas
+      - /deploy
+    schedule:
+      interval: weekly
+    groups:
+      imagenes:
+        patterns: ['*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      acciones:
+        patterns: ['*']

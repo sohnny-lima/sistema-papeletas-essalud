@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { finalize } from 'rxjs';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { BackendService } from '../services/backend.service';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import Swal from 'sweetalert2';
+import { AuthService } from '../services/auth.service';
 
 interface Trabajador {
   id_trabajador?: number;
@@ -13,11 +15,11 @@ interface Trabajador {
 }
 
 @Component({
-  selector: 'app-trabajadores',
-  standalone: true,
-  templateUrl: './trabajadores.component.html',
-  styleUrls: ['./trabajadores.component.css'],
-  imports: [CommonModule, FormsModule]
+    selector: 'app-trabajadores',
+    templateUrl: './trabajadores.component.html',
+    styleUrls: ['./trabajadores.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [FormsModule]
 })
 export class TrabajadoresComponent implements OnInit {
   trabajadores: Trabajador[] = [];
@@ -37,7 +39,9 @@ export class TrabajadoresComponent implements OnInit {
   // Para usar Math.min en la vista
   Math = Math;
 
-  constructor(private backendService: BackendService) {}
+  constructor(private backendService: BackendService, private authService: AuthService) {}
+
+  get isAdmin(): boolean { return this.authService.isAdmin(); }
 
   ngOnInit(): void {
     this.getTrabajadores();
@@ -71,12 +75,11 @@ export class TrabajadoresComponent implements OnInit {
   }
 
   getTrabajadores(): void {
-    console.log('Current Page:', this.currentPage);
     this.isLoading = true;
 
     this.backendService
       .getTrabajadores(this.currentPage, this.itemsPerPage, this.selectedCategory, this.searchText)
-      .subscribe({
+      .pipe(finalize(() => { this.isLoading = false; })).subscribe({
         next: (response) => {
           this.isLoading = false;
 
@@ -159,6 +162,7 @@ export class TrabajadoresComponent implements OnInit {
   }
 
   deleteTrabajador(id: number): void {
+    if (!this.isAdmin) return;
     Swal.fire({
       title: '¿Está seguro?',
       text: '¿Desea eliminar este trabajador?',
@@ -174,7 +178,7 @@ export class TrabajadoresComponent implements OnInit {
             this.getTrabajadores();
             this.showSuccessAlert('Trabajador eliminado exitosamente');
           },
-          error: () => this.showErrorAlert('Error al eliminar trabajador')
+          error: (error) => this.showErrorAlert(this.getErrorMessage(error, 'Error al eliminar trabajador'))
         });
       }
     });
@@ -298,6 +302,7 @@ export class TrabajadoresComponent implements OnInit {
   }
 
   private getErrorMessage(error: any, fallback: string): string {
+    if (error?.status === 403) return 'No tiene permisos para realizar esta acción.';
     return error?.error?.message || error?.error?.detail || fallback;
   }
 }

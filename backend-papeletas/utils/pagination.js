@@ -5,7 +5,7 @@ function getPagination(query, defaults = {}) {
   const requestedPage = Number.parseInt(query.page, 10);
   const requestedPageSize = Number.parseInt(query.pageSize, 10);
 
-  const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 && requestedPage <= 2147483647 ? requestedPage : 1;
   const pageSize = Number.isInteger(requestedPageSize) && requestedPageSize > 0
     ? Math.min(requestedPageSize, maxPageSize)
     : defaultPageSize;

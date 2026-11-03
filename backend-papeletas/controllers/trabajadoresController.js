@@ -6,7 +6,7 @@ const { getPagination } = require('../utils/pagination');
 const getAllTrabajadores = async (req, res) => {
     const { page, pageSize, offset } = getPagination(req.query);
     const category = req.query.category || '';
-    const filterText = (req.query.filterText || '').trim();
+    const filterText = String(req.query.filterText || '').trim();
 
     try {
         let query = 'SELECT * FROM trabajadores';
@@ -61,7 +61,6 @@ const getAllTrabajadores = async (req, res) => {
             currentPage: page
         }, 'Trabajadores obtenidos exitosamente');
     } catch (error) {
-        console.error('Error al obtener los trabajadores:', error);
         return errorResponse(res, error, 'Error al obtener los trabajadores');
     }
 };
@@ -79,7 +78,6 @@ const getTrabajadorById = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Trabajador obtenido exitosamente');
     } catch (error) {
-        console.error('Error al obtener el trabajador:', error);
         errorResponse(res, error, 'Error al obtener el trabajador');
     }
 };
@@ -116,7 +114,6 @@ const createTrabajador = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Trabajador creado exitosamente');
     } catch (error) {
-        console.error('Error al crear el trabajador:', error);
         errorResponse(res, error, 'Error al crear el trabajador');
     }
 };
@@ -159,7 +156,6 @@ const updateTrabajador = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Trabajador actualizado exitosamente');
     } catch (error) {
-        console.error('Error al actualizar el trabajador:', error);
         errorResponse(res, error, 'Error al actualizar el trabajador');
     }
 };
@@ -177,7 +173,6 @@ const deleteTrabajador = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Trabajador eliminado correctamente');
     } catch (error) {
-        console.error('Error al eliminar el trabajador:', error);
         errorResponse(res, error, 'Error al eliminar el trabajador');
     }
 };

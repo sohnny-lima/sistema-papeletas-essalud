@@ -5,3 +5,26 @@ build/
 **/node_modules
 **/.env
 **/dist
+
+# Coordinación local de agentes (registros crudos de Gemini, marcas); nunca secretos versionados
+.local/
+
+# Operación Docker: secretos y copias privados
+deploy/.env
+deploy/secretos/*
+!deploy/secretos/README.md
+deploy/respaldos/
+
+# Documentación académica y archivos internos de la revisión y de los agentes:
+# se conservan en local, no se publican (decisión del responsable, 03/11/2026).
+guia_exposicion.md
+AGENTS.md
+CLAUDE.md
+.vscode/
+docs/revision/*
+!docs/revision/pruebas/
+docs/revision/pruebas/*
+!docs/revision/pruebas/e2e/
+!docs/revision/pruebas/preparar-bd-prueba.ps1
+docs/revision/pruebas/e2e/capturas/
+docs/revision/pruebas/e2e/capturas-*.mjs

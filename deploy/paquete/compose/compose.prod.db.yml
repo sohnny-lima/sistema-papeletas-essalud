@@ -1,0 +1,52 @@
+# Escenario A: PostgreSQL en contenedor, sin puertos publicados y en una red interna.
+services:
+  backend:
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+    depends_on:
+      db:
+        condition: service_healthy
+  operaciones:
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: ${POSTGRES_IMAGE:-postgres:17.11-bookworm}
+    pull_policy: never
+    environment:
+      TZ: ${TZ:-America/Lima}
+      POSTGRES_DB: ${DB_NAME:-papeletas}
+      POSTGRES_USER: ${DB_OWNER_USER:-papeletas_admin}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_owner_password
+    secrets: [db_owner_password]
+    volumes: [postgres_datos:/var/lib/postgresql/data]
+    networks: [datos]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    read_only: true
+    tmpfs: ["/tmp:size=32m,mode=1777", "/var/run/postgresql:size=16m,mode=1777"]
+    security_opt: [no-new-privileges:true]
+    # El entrypoint prepara el volumen y baja al usuario postgres.
+    cap_drop: [ALL]
+    cap_add: [CHOWN, FOWNER, SETUID, SETGID, DAC_OVERRIDE]
+    mem_limit: ${DB_MEMORY:-512m}
+    logging:
+      driver: json-file
+      options:
+        max-size: ${LOG_MAX_SIZE:-10m}
+        max-file: "${LOG_MAX_FILE:-5}"
+
+networks:
+  datos:
+    internal: true
+volumes:
+  postgres_datos:

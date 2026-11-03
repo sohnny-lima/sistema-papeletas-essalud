@@ -5,7 +5,15 @@ import { of, throwError } from 'rxjs';
 
 class MockBackendService {
   getEstadisticas() {
-    return of({ totalTrabajadores: 10, totalEquipos: 5, totalPapeletas: 20 });
+    return of({
+      success: true,
+      message: 'Estadísticas obtenidas exitosamente',
+      data: {
+        trabajadores: 10,
+        equipos: 5,
+        papeletas: 20,
+      },
+    });
   }
 }
 
@@ -16,8 +24,8 @@ describe('DashboardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [DashboardComponent],
-      providers: [{ provide: BackendService, useClass: MockBackendService }]
+      imports: [DashboardComponent],
+      providers: [{ provide: BackendService, useClass: MockBackendService }],
     }).compileComponents();
   });
 
@@ -25,6 +33,7 @@ describe('DashboardComponent', () => {
     fixture = TestBed.createComponent(DashboardComponent);
     component = fixture.componentInstance;
     backendService = TestBed.inject(BackendService);
+    spyOn(component, 'renderChart');
     fixture.detectChanges();
   });
 
@@ -36,12 +45,21 @@ describe('DashboardComponent', () => {
     spyOn(backendService, 'getEstadisticas').and.callThrough();
     component.ngOnInit();
     expect(backendService.getEstadisticas).toHaveBeenCalled();
-    expect(component.estadisticas.totalTrabajadores).toBe(10);
+    expect(component.estadisticas).toEqual({
+      totalTrabajadores: 10,
+      totalEquipos: 5,
+      totalPapeletas: 20,
+    });
+    expect(component.cargando).toBeFalse();
   });
 
   it('should handle error when loading statistics', () => {
-    spyOn(backendService, 'getEstadisticas').and.returnValue(throwError('Error'));
+    spyOn(backendService, 'getEstadisticas').and.returnValue(
+      throwError(() => new Error('Error'))
+    );
+    component.estadisticas = null;
     component.cargarEstadisticas();
-    expect(component.estadisticas).toEqual({ totalTrabajadores: 0, totalEquipos: 0, totalPapeletas: 0 });
+    expect(component.cargando).toBeFalse();
+    expect(component.errorMessage).toContain('No se pudieron cargar las estadísticas');
   });
 });

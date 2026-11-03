@@ -4,3 +4,21 @@
   flex-direction: column;
   min-height: 100vh;
 }
+
+/* Enlace «Acerca del sistema» del pie (fondo azul oscuro). */
+.footer__enlace {
+  color: #fff;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  border-radius: 4px;
+}
+
+.footer__enlace:hover {
+  text-decoration-thickness: 2px;
+}
+
+.footer__enlace:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}

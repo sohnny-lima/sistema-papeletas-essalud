@@ -1,5 +1,6 @@
 const pool = require('../config/database');
 const { successResponse, errorResponse } = require('../utils/responseHandler');
+const { getPagination } = require('../utils/pagination');
 
 // -------------------------------------------------------
 // Obtener todos los lugares con nombre del centro asistencial
@@ -7,12 +8,10 @@ const { successResponse, errorResponse } = require('../utils/responseHandler');
 // Ejemplo de ruta GET /api/lugares con paginación y filtros
 const getAllLugares = async (req, res) => {
   try {
-    // 1. Leer query params
-    let { page, pageSize } = req.query;
+    // 1. Leer query params (página >= 1 y tamaño entre 1 y 100)
+    const { page, pageSize, offset } = getPagination(req.query);
     const category = req.query.category || '';
-    const filterText = (req.query.filterText || '').trim();
-    page = parseInt(page) || 1;
-    pageSize = parseInt(pageSize) || 10;
+    const filterText = String(req.query.filterText || '').trim();
 
     // 2. Construir la base de la query
     let baseQuery = `
@@ -68,7 +67,6 @@ const getAllLugares = async (req, res) => {
 
     // 5. Orden, paginación
     baseQuery += ' ORDER BY l.id_lugar ASC ';
-    const offset = (page - 1) * pageSize;
     baseQuery += ` LIMIT $${params.length+1} OFFSET $${params.length+2} `;
     params.push(pageSize, offset);
 
@@ -93,11 +91,12 @@ const getAllLugares = async (req, res) => {
     // 8. Responder
     successResponse(res, {
       data: result.rows,
-      totalItems
+      totalItems,
+      totalPages: Math.ceil(totalItems / pageSize),
+      currentPage: page
     }, 'Lugares obtenidos con paginación y filtros');
 
   } catch (error) {
-    console.error('Error al obtener lugares con filtros/paginación:', error);
     errorResponse(res, error, 'Error al obtener lugares');
   }
 };
@@ -115,7 +114,6 @@ const getLugarById = async (req, res) => {
     }
     successResponse(res, result.rows[0], 'Lugar obtenido correctamente');
   } catch (error) {
-    console.error('Error al obtener el lugar:', error);
     errorResponse(res, error, 'Error al obtener el lugar');
   }
 };
@@ -140,7 +138,6 @@ const createLugar = async (req, res) => {
     const result = await pool.query(query, [nombre_ambiente, dependencia, id_centro]);
     successResponse(res, result.rows[0], 'Lugar creado exitosamente');
   } catch (error) {
-    console.error('Error al insertar el lugar:', error);
     errorResponse(res, error, 'Error al insertar el lugar');
   }
 };
@@ -171,7 +168,6 @@ const updateLugar = async (req, res) => {
     }
     successResponse(res, result.rows[0], 'Lugar actualizado exitosamente');
   } catch (error) {
-    console.error('Error al actualizar el lugar:', error);
     errorResponse(res, error, 'Error al actualizar el lugar');
   }
 };
@@ -188,7 +184,6 @@ const deleteLugar = async (req, res) => {
     }
     successResponse(res, result.rows[0], 'Lugar eliminado correctamente');
   } catch (error) {
-    console.error('Error al eliminar el lugar:', error);
     errorResponse(res, error, 'Error al eliminar el lugar');
   }
 };
@@ -200,8 +195,7 @@ const deleteLugar = async (req, res) => {
 // Buscar lugares por texto (mejorado con validación y log)
 // -------------------------------------------------------
 const searchLugares = async (req, res) => {
-  let { searchText } = req.query;
-  searchText = searchText?.trim();
+  const searchText = String(req.query.searchText || '').trim();
 
   if (!searchText || searchText.length < 3) {
     return successResponse(res, [], 'Texto de búsqueda muy corto.');
@@ -230,15 +224,9 @@ const searchLugares = async (req, res) => {
     const values = [pattern];
     const result = await pool.query(query, values);
 
-    console.log('📦 Lugares encontrados:', result.rows.map(r => ({
-      ambiente: r.nombre_ambiente,
-      dependencia: r.dependencia,
-      centro: r.centro
-    })));
 
     return successResponse(res, result.rows, 'Lugares filtrados correctamente');
   } catch (error) {
-    console.error('Error al buscar lugares:', error);
     return errorResponse(res, error, 'Error al buscar lugares');
   }
 };

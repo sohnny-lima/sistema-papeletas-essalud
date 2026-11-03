@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
+const { validateId } = require('../middlewares/idMiddleware');
+router.param('id', validateId);
 const equiposController = require('../controllers/equiposController');
-const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
+const { verifyAdmin } = require('../middlewares/authMiddleware');
 
 // Rutas
-router.get('/', verifyToken, equiposController.getAllEquipos);
-router.get('/:id', verifyToken, equiposController.getEquipoById);
-router.post('/', verifyToken, equiposController.createEquipo);
-router.put('/:id', verifyToken, equiposController.updateEquipo);
-router.delete('/:id', verifyToken, verifyAdmin, equiposController.deleteEquipo);
+router.get('/', equiposController.getAllEquipos);
+router.get('/:id', equiposController.getEquipoById);
+router.post('/', equiposController.createEquipo);
+router.put('/:id', equiposController.updateEquipo);
+router.delete('/:id', verifyAdmin, equiposController.deleteEquipo);
 
 module.exports = router;

@@ -4,7 +4,7 @@ async function generateNextPapeletaNumber(client) {
   const result = await client.query(`
     SELECT COALESCE(MAX(CAST(SUBSTRING(numero_papeleta, 4) AS INTEGER)), 0) + 1 AS next_number
     FROM papeletas
-    WHERE numero_papeleta ~ '^PA-\\d+$';
+    WHERE numero_papeleta ~ '^PA-\\d{1,9}$'; -- hasta 9 dígitos: cabe en INTEGER
   `);
 
   return `PA-${String(result.rows[0].next_number).padStart(4, '0')}`;

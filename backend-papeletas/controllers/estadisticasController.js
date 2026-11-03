@@ -14,7 +14,6 @@ const getEstadisticas = async (req, res) => {
             papeletas: parseInt(totalPapeletas.rows[0].count),
         }, 'Estadísticas obtenidas exitosamente');
     } catch (error) {
-        console.error('Error al obtener estadísticas:', error);
         errorResponse(res, error, 'Error al obtener estadísticas');
     }
 };
