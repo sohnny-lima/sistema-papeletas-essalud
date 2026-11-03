@@ -7,7 +7,6 @@ const getAllRoles = async (req, res) => {
         const result = await pool.query('SELECT * FROM roles ORDER BY id_rol ASC');
         successResponse(res, result.rows, 'Roles obtenidos exitosamente');
     } catch (error) {
-        console.error('Error al obtener los roles:', error);
         errorResponse(res, error, 'Error al obtener los roles');
     }
 };
@@ -23,7 +22,6 @@ const getRolById = async (req, res) => {
         }
         successResponse(res, result.rows[0], 'Rol obtenido exitosamente');
     } catch (error) {
-        console.error('Error al obtener el rol:', error);
         errorResponse(res, error, 'Error al obtener el rol');
     }
 };
@@ -42,7 +40,6 @@ const createRol = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Rol creado exitosamente');
     } catch (error) {
-        console.error('Error al crear el rol:', error);
         errorResponse(res, error, 'Error al crear el rol');
     }
 };
@@ -66,7 +63,6 @@ const updateRol = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Rol actualizado exitosamente');
     } catch (error) {
-        console.error('Error al actualizar el rol:', error);
         errorResponse(res, error, 'Error al actualizar el rol');
     }
 };
@@ -85,7 +81,6 @@ const deleteRol = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Rol eliminado exitosamente');
     } catch (error) {
-        console.error('Error al eliminar el rol:', error);
         errorResponse(res, error, 'Error al eliminar el rol');
     }
 };

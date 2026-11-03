@@ -15,7 +15,6 @@ const getAllPapeletaEquipos = async (req, res) => {
         const result = await pool.query(query);
         successResponse(res, result.rows, 'Registros de papeletas y equipos obtenidos exitosamente');
     } catch (error) {
-        console.error('Error al obtener los registros de papeleta_equipos:', error);
         errorResponse(res, error, 'Error al obtener los registros de papeleta_equipos');
     }
 };
@@ -41,7 +40,6 @@ const getPapeletaEquipoById = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Registro obtenido exitosamente');
     } catch (error) {
-        console.error('Error al obtener el registro de papeleta_equipos:', error);
         errorResponse(res, error, 'Error al obtener el registro de papeleta_equipos');
     }
 };
@@ -62,7 +60,6 @@ const createPapeletaEquipo = async (req, res) => {
         const result = await pool.query(query, [id_papeleta, id_equipo]);
         successResponse(res, result.rows[0], 'Registro creado exitosamente');
     } catch (error) {
-        console.error('Error al crear el registro de papeleta_equipos:', error);
         errorResponse(res, error, 'Error al crear el registro de papeleta_equipos');
     }
 };
@@ -90,7 +87,6 @@ const updatePapeletaEquipo = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Registro actualizado exitosamente');
     } catch (error) {
-        console.error('Error al actualizar el registro de papeleta_equipos:', error);
         errorResponse(res, error, 'Error al actualizar el registro de papeleta_equipos');
     }
 };
@@ -109,7 +105,6 @@ const deletePapeletaEquipo = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Registro eliminado exitosamente');
     } catch (error) {
-        console.error('Error al eliminar el registro de papeleta_equipos:', error);
         errorResponse(res, error, 'Error al eliminar el registro de papeleta_equipos');
     }
 };

@@ -7,7 +7,6 @@ const getAllTiposFormulario = async (req, res) => {
         const result = await pool.query('SELECT * FROM tipo_formulario ORDER BY id_tipo_formulario ASC');
         successResponse(res, result.rows, 'Tipos de formulario obtenidos exitosamente');
     } catch (error) {
-        console.error('Error al obtener los tipos de formulario:', error);
         errorResponse(res, error, 'Error al obtener los tipos de formulario');
     }
 };
@@ -23,7 +22,6 @@ const getTipoFormularioById = async (req, res) => {
         }
         successResponse(res, result.rows[0], 'Tipo de formulario obtenido exitosamente');
     } catch (error) {
-        console.error('Error al obtener el tipo de formulario:', error);
         errorResponse(res, error, 'Error al obtener el tipo de formulario');
     }
 };
@@ -42,7 +40,6 @@ const createTipoFormulario = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Tipo de formulario creado exitosamente');
     } catch (error) {
-        console.error('Error al crear el tipo de formulario:', error);
         errorResponse(res, error, 'Error al crear el tipo de formulario');
     }
 };
@@ -66,7 +63,6 @@ const updateTipoFormulario = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Tipo de formulario actualizado exitosamente');
     } catch (error) {
-        console.error('Error al actualizar el tipo de formulario:', error);
         errorResponse(res, error, 'Error al actualizar el tipo de formulario');
     }
 };
@@ -85,7 +81,6 @@ const deleteTipoFormulario = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Tipo de formulario eliminado exitosamente');
     } catch (error) {
-        console.error('Error al eliminar el tipo de formulario:', error);
         errorResponse(res, error, 'Error al eliminar el tipo de formulario');
     }
 };

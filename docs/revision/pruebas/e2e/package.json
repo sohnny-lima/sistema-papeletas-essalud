@@ -1,0 +1,12 @@
+{
+  "name": "e2e-papeletas",
+  "private": true,
+  "type": "module",
+  "description": "Pruebas E2E de la interfaz (revisión). Usa el Chrome instalado; no descarga navegadores.",
+  "scripts": {
+    "e2e": "node flujos-ui.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.63.0"
+  }
+}

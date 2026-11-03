@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
+const { validateId } = require('../middlewares/idMiddleware');
+router.param('id', validateId);
 const papeletaEquiposController = require('../controllers/papeletaEquiposController');
-const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
+const { verifyAdmin } = require('../middlewares/authMiddleware');
 
 // Rutas para papeleta_equipos
-router.get('/', verifyToken, papeletaEquiposController.getAllPapeletaEquipos);
-router.get('/:id', verifyToken, papeletaEquiposController.getPapeletaEquipoById);
-router.post('/', verifyToken, verifyAdmin, papeletaEquiposController.createPapeletaEquipo);
-router.put('/:id', verifyToken, verifyAdmin, papeletaEquiposController.updatePapeletaEquipo);
-router.delete('/:id', verifyToken, verifyAdmin, papeletaEquiposController.deletePapeletaEquipo);
+router.get('/', papeletaEquiposController.getAllPapeletaEquipos);
+router.get('/:id', papeletaEquiposController.getPapeletaEquipoById);
+router.post('/', verifyAdmin, papeletaEquiposController.createPapeletaEquipo);
+router.put('/:id', verifyAdmin, papeletaEquiposController.updatePapeletaEquipo);
+router.delete('/:id', verifyAdmin, papeletaEquiposController.deletePapeletaEquipo);
 
 module.exports = router;

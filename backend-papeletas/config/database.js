@@ -1,23 +1,32 @@
 const { Pool } = require('pg');
-require('dotenv').config(); // Carga las variables de entorno desde el archivo .env
+const { apiDatabaseConfig } = require('./env');
+const { logError } = require('../utils/securityLog');
+const { conservarErrorCliente } = require('../utils/clienteConError');
 
 // Configuración de la conexión
-const pool = new Pool({
-    user: process.env.DB_USER || 'postgres', // Valor por defecto si no se encuentra en el archivo .env
-    host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'bd_papeleta',
-    password: process.env.DB_PASSWORD || 'password',
-    port: process.env.DB_PORT || 5432,
-});
+const pool = new Pool(apiDatabaseConfig());
 
-// Eventos de la conexión
-pool.on('connect', () => {
-    console.log('🟢 Conexión exitosa a la base de datos');
-});
+// Durante pool.connect() no está el listener del pool para clientes inactivos.
+// Una desconexión (incluido 25P03) entre dos consultas no debe cerrar el proceso.
+// En uso lo registra el controlador; el pool sigue registrando sus clientes inactivos.
+pool.on('connect', conservarErrorCliente);
 
+// Un error en un cliente inactivo del pool (p. ej. PostgreSQL reiniciado) no debe tumbar
+// el proceso: el pool descarta ese cliente y abre otro en la siguiente consulta.
 pool.on('error', (err) => {
-    console.error('🔴 Error en la conexión con la base de datos:', err.message);
-    process.exit(-1); // Finaliza el proceso si hay un error crítico
+    logError('Error en una conexión inactiva con la base de datos', err);
 });
+
+/** Comprueba que la base de datos responde. Devuelve true/false sin lanzar. */
+async function checkConnection() {
+    try {
+        await pool.query('SELECT 1');
+        return true;
+    } catch (err) {
+        logError('No se pudo conectar con la base de datos', err);
+        return false;
+    }
+}
 
 module.exports = pool;
+module.exports.checkConnection = checkConnection;

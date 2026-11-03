@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  NG_CLI_ANALYTICS: 'false'
+  NG_DISABLE_VERSION_CHECK: '1'
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend-papeletas
+    services:
+      postgres:
+        # Mismo valor fijado que deploy/compose.db.yaml y deploy/.env.example.
+        image: postgres:17.11-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          # Solo servicio efímero del job; Docker genera sus secretos aparte.
+          POSTGRES_PASSWORD: papeletas_ci_efimera
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      # Cliente 17 (PGDG): el pg_dump 16 de ubuntu-latest no acepta un servidor 17 (g013 #2).
+      PSQL: /usr/lib/postgresql/17/bin/psql
+      TEST_DB_HOST: localhost
+      TEST_DB_PORT: '5432'
+      TEST_DB_USER: postgres
+      TEST_DB_PASSWORD: papeletas_ci_efimera
+      PGPASSWORD: papeletas_ci_efimera
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: backend-papeletas/package-lock.json
+      - name: Instalar el cliente de PostgreSQL 17 (repositorio oficial PGDG)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-17
+          "$PSQL" --version
+          /usr/lib/postgresql/17/bin/pg_dump --version
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+      - name: Pruebas de API con esquema reconstruido
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee pruebas-api.log
+      - name: Publicar el registro
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: backend-pruebas
+          path: backend-papeletas/pruebas-api.log
+          retention-days: 7
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend-papeletas
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: frontend-papeletas/package-lock.json
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+      - name: Permitir el sandbox de Chrome en el ejecutor efímero
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - run: npx ng test --watch=false --browsers=ChromeHeadless
+      - run: npx ng build
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: docs/revision/pruebas/e2e/package-lock.json
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+      - name: Preparar E2E con Chrome del ejecutor
+        run: |
+          npm ci --prefix docs/revision/pruebas/e2e
+          google-chrome --version
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Construir, probar humo, persistencia y E2E; limpiar
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p docs/revision/pruebas/logs
+          bash deploy/scripts/humo.sh --e2e 2>&1 | tee docs/revision/pruebas/logs/c006-docker-ci.log
+      - name: Publicar evidencia sin secretos
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: docker-e2e
+          path: |
+            docs/revision/pruebas/logs/c006-*.log
+            docs/revision/pruebas/logs/c006-*.pdf
+            docs/revision/pruebas/e2e/capturas/
+          retention-days: 7

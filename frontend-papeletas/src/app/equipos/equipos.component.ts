@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { finalize } from 'rxjs';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { BackendService } from '../services/backend.service';
 import Swal from 'sweetalert2';
-import { CommonModule } from '@angular/common';
+import { AuthService } from '../services/auth.service';
+
 import { FormsModule } from '@angular/forms';
 
 interface Equipo {
@@ -14,11 +16,11 @@ interface Equipo {
 }
 
 @Component({
-  selector: 'app-equipos',
-  standalone: true,
-  templateUrl: './equipos.component.html',
-  styleUrls: ['./equipos.component.css'],
-  imports: [CommonModule, FormsModule]
+    selector: 'app-equipos',
+    templateUrl: './equipos.component.html',
+    styleUrls: ['./equipos.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [FormsModule]
 })
 export class EquiposComponent implements OnInit {
   
@@ -45,7 +47,9 @@ export class EquiposComponent implements OnInit {
   // Para poder usar Math.min en la vista
   Math = Math;
 
-  constructor(private backendService: BackendService) {}
+  constructor(private backendService: BackendService, private authService: AuthService) {}
+
+  get isAdmin(): boolean { return this.authService.isAdmin(); }
 
   ngOnInit(): void {
     this.getEquipos();
@@ -91,7 +95,7 @@ export class EquiposComponent implements OnInit {
         this.selectedCategory,
         this.searchText
       )
-      .subscribe({
+      .pipe(finalize(() => { this.isLoading = false; })).subscribe({
         next: (response) => {
           this.isLoading = false;
 
@@ -182,6 +186,7 @@ export class EquiposComponent implements OnInit {
 
   // Eliminar un equipo
   deleteEquipo(id_equipo: number): void {
+    if (!this.isAdmin) return;
     Swal.fire({
       title: '¿Está seguro?',
       text: '¿Desea eliminar este equipo?',
@@ -195,7 +200,7 @@ export class EquiposComponent implements OnInit {
             this.getEquipos();
             this.showSuccessAlert('Equipo eliminado exitosamente');
           },
-          error: () => this.showErrorAlert('Error al eliminar equipo')
+          error: (error) => this.showErrorAlert(this.getErrorMessage(error, 'Error al eliminar equipo'))
         });
       }
     });
@@ -325,6 +330,7 @@ export class EquiposComponent implements OnInit {
   }
 
   private getErrorMessage(error: any, fallback: string): string {
+    if (error?.status === 403) return 'No tiene permisos para realizar esta acción.';
     return error?.error?.message || error?.error?.detail || fallback;
   }
 }

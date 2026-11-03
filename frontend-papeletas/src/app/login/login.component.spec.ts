@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { LoginComponent } from './login.component';
-import { BackendService } from '../services/backend.service';
-import { AuthService } from '../services/auth.service';
-import { Router } from '@angular/router';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { of } from 'rxjs';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'; // Agrega esta línea
-
-class MockBackendService {
-  login() {
-    return of({ token: 'mockToken' });
-  }
-}
+import { of, throwError } from 'rxjs';
+import { LoginComponent } from './login.component';
+import { AuthService } from '../services/auth.service';
 
 class MockAuthService {
+  login(username: string, _password: string) {
+    return of({
+      success: true,
+      token: 'mockToken',
+      user: { idUsuario: 1, nombreUsuario: username, rol: 'admin' },
+    });
+  }
+
   saveToken(token: string) {
     localStorage.setItem('authToken', token);
   }
@@ -23,20 +23,22 @@ class MockAuthService {
 describe('LoginComponent', () => {
   let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
+  let authService: AuthService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [LoginComponent, RouterTestingModule],
-    providers: [
-        { provide: BackendService, useClass: MockBackendService },
+      imports: [LoginComponent],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(withXhr()),
+        provideHttpClientTesting(),
         { provide: AuthService, useClass: MockAuthService },
-        provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
-    ]
-}).compileComponents();
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
+    authService = TestBed.inject(AuthService);
     fixture.detectChanges();
   });
 
@@ -44,11 +46,28 @@ describe('LoginComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should call login method on submit', () => {
-    spyOn(component, 'onSubmit').and.callThrough();
+  it('should call AuthService.login on submit with valid credentials', () => {
+    spyOn(authService, 'login').and.callThrough();
     component.nombreUsuario = 'testUser';
     component.contrasena = 'testPassword';
+
     component.onSubmit();
-    expect(component.onSubmit).toHaveBeenCalled();
+
+    expect(authService.login).toHaveBeenCalledWith('testUser', 'testPassword');
+    expect(component.successMessage).toContain('Inicio de sesión exitoso');
+    expect(component.errorMessage).toBe('');
+  });
+
+  it('should set errorMessage when login fails', () => {
+    spyOn(authService, 'login').and.returnValue(
+      throwError(() => ({ status: 401 }))
+    );
+    component.nombreUsuario = 'testUser';
+    component.contrasena = 'badPassword';
+
+    component.onSubmit();
+
+    expect(component.errorMessage).toBe('Usuario o contraseña incorrectos.');
+    expect(component.successMessage).toBe('');
   });
 });

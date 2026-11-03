@@ -1,24 +1,30 @@
 {
   "name": "backend-papeletas",
-  "version": "1.0.0",
+  "engines": {
+    "node": ">=24.15.0 <25"
+  },
+  "version": "1.0.0-rc.2",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "test": "node --test --test-concurrency=1 test/arranque.test.js test/api.regresion.test.js test/revision-turno2.test.js test/centros.test.js test/centros-revision.test.js test/entrega.test.js test/seguridad.test.js test/seguridad-g010.test.js test/base-datos.test.js test/operacion-g011.test.js test/docker-c005.test.js test/usuarios-bloque-u.test.js test/incidencia-vm1.test.js test/cierre-vm1.test.js test/permisos-catalogos-r007.test.js"
   },
   "keywords": [],
   "author": "sohnny",
   "license": "ISC",
   "description": "API para la gestión de papeletas y movimientos de equipos TI.",
   "dependencies": {
-    "bcrypt": "^5.1.1",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.21.1",
-    "jsonwebtoken": "^9.0.2",
-    "pg": "^8.13.0"
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.3",
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.14"
   }
 }

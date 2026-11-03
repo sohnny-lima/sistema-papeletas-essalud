@@ -1,14 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BackendService } from '../services/backend.service';
 import Swal from 'sweetalert2';
+import { AuthService } from '../services/auth.service';
 
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { switchMap, finalize } from 'rxjs';
+import { prepararDatosPDF } from './papeleta-pdf';
 
-(jsPDF as any).autoTable = autoTable;
 
 // 1) Interfaz con IDs y nombres “auxiliares”
 interface Papeleta {
@@ -53,11 +52,11 @@ interface Equipo {
 }
 
 @Component({
-  selector: 'app-papeletas',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './papeletas.component.html',
-  styleUrls: ['./papeletas.component.css'],
+    selector: 'app-papeletas',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './papeletas.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    styleUrls: ['./papeletas.component.css']
 })
 export class PapeletasComponent implements OnInit {
   public isLoading: boolean = false;
@@ -98,17 +97,33 @@ export class PapeletasComponent implements OnInit {
   currentStartIndex: number = 0;
   currentEndIndex: number = 0;
 
-  constructor(private backendService: BackendService) {}
+  constructor(private backendService: BackendService, private authService: AuthService) {}
+
+  get isAdmin(): boolean { return this.authService.isAdmin(); }
 
   ngOnInit(): void {
     this.getPapeletas();
     this.getTiposFormulario();
   }
 
+  /** Fecha local de hoy en formato YYYY-MM-DD (toISOString usaría UTC y daría el día siguiente por la noche). */
+  private todayLocal(): string {
+    const now = new Date();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    return `${now.getFullYear()}-${mm}-${dd}`;
+  }
+
+  /** dd/mm/yyyy a partir de 'YYYY-MM-DD' sin pasar por Date (evita desfases de zona horaria). */
+  private formatFecha(fecha: string | null | undefined): string {
+    const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(fecha || '');
+    return match ? `${match[3]}/${match[2]}/${match[1]}` : '';
+  }
+
   private createEmptyPapeleta(): Papeleta {
     return {
       numero_papeleta: '',
-      fecha: new Date().toISOString().split('T')[0],
+      fecha: this.todayLocal(),
       id_tipo_formulario: 0,
       id_trabajador_origen: 0,
       id_trabajador_destino: 0,
@@ -122,11 +137,20 @@ export class PapeletasComponent implements OnInit {
   // ========== PDF ============
   // ===========================
   generarPDF(id_papeleta: number): void {
-    this.backendService.getPapeletaById(id_papeleta).subscribe({
-      next: (response) => {
+    this.backendService.getPapeletaById(id_papeleta).pipe(
+      // Las librerías PDF se cargan al descargar, para conservar el presupuesto inicial.
+      switchMap(async (response) => {
+        const [{ jsPDF }, { autoTable }] = await Promise.all([
+          import('jspdf'), import('jspdf-autotable')
+        ]);
+        return { response, jsPDF, autoTable };
+      })
+    ).subscribe({
+      next: ({ response, jsPDF, autoTable }) => {
         const papeleta = response.data;
         if (!papeleta) return;
   
+        const datosPDF = prepararDatosPDF(papeleta);
         const pdf = new jsPDF('landscape');
         const marginLeft = 20;
         const marginRight = 20;
@@ -184,15 +208,13 @@ export class PapeletasComponent implements OnInit {
         };
   
         const logo = new Image();
-        logo.src = 'assets/logo4.png';
-  
-        logo.onload = () => {
+        const dibujarPDF = (conLogo: boolean) => {
           const logoWidth = 58;
           const logoHeight = 38;
           const logoX = marginLeft;
           const desplazamientoVerticalLogo = -15;
           const logoY = y + desplazamientoVerticalLogo;
-          pdf.addImage(logo, 'PNG', logoX, logoY, logoWidth, logoHeight);
+          if (conLogo) pdf.addImage(logo, 'PNG', logoX, logoY, logoWidth, logoHeight);
   
           pdf.setFont('helvetica', 'bold');
           pdf.setFontSize(14);
@@ -219,7 +241,7 @@ export class PapeletasComponent implements OnInit {
           pdf.text('FECHA:', x + 2, yFecha + 4);
           pdf.rect(x + cellWidth1, yFecha, cellWidth2, cellHeight);
           pdf.setFont('helvetica', 'normal');
-          pdf.text(new Date(papeleta.fecha).toLocaleDateString('es-PE'), x + cellWidth1 + 2, yFecha + 4);
+          pdf.text(this.formatFecha(papeleta.fecha), x + cellWidth1 + 2, yFecha + 4);
   
           y = marginTop + 18;
           pdf.setFont('helvetica', 'bold');
@@ -235,13 +257,7 @@ export class PapeletasComponent implements OnInit {
           pdf.setFontSize(9);
           pdf.text('II. DATOS DEL ORIGEN / ASIGNACIÓN', marginLeft, y);
           y += 2;
-          const [depOrigen, ambOrigen] = (papeleta.lugar_origen_nombre || '').split('(');
-y = drawMixedFichaBlock(y, [
-  ['TRABAJADOR', papeleta.trabajador_origen_nombre || '', 'CÓDIGO', papeleta.trabajador_origen_codigo || ''],
-  ['DEPENDENCIA', depOrigen?.trim() || ''],
-  ['AMBIENTE', ambOrigen?.replace(')', '').trim() || '[completar]'],
-  ['CENTRO', papeleta.origen_centro || '']
-]);
+          y = drawMixedFichaBlock(y, datosPDF.origen);
           
           y += 6;
   
@@ -249,18 +265,10 @@ y = drawMixedFichaBlock(y, [
           pdf.setFontSize(9);
           pdf.text('III. DATOS DE LOS BIENES', marginLeft, y);
           y += 2;
-          (pdf as any).autoTable({
+          autoTable(pdf, {
             startY: y,
-            head: [['ITEM', 'CÓDIGO PATRIMONIAL', 'DESCRIPCIÓN Y ESPECIFICACIONES DEL BIEN', 'MARCA', 'SERIE', 'MODELO']],
-            body: papeleta.equipos_patrimoniales.map((e: any, i: number) => [
-              i + 1,
-              e.cod_patrimonial,
-              e.descripcion,
-              e.marca,
-              e.serie || '',
-              e.modelo,
-              ''
-            ]),
+            head: [datosPDF.cabeceras],
+            body: datosPDF.bienes,
             styles: {
               fontSize: 7.8,
               cellPadding: 1.5,
@@ -282,13 +290,7 @@ y = drawMixedFichaBlock(y, [
           pdf.setFontSize(9);
           pdf.text('IV. DATOS DEL DESTINO (Solo utilizar en caso de Desplazamiento / Mantenimiento / Devolución)', marginLeft, y);
           y += 2;
-          const [depDestino, ambDestino] = (papeleta.lugar_destino_nombre || '').split('(');
-y = drawMixedFichaBlock(y, [
-  ['TRABAJADOR', papeleta.trabajador_destino_nombre || '', 'CÓDIGO', papeleta.trabajador_destino_codigo || ''],
-  ['DEPENDENCIA', depDestino?.trim() || ''],
-  ['AMBIENTE', ambDestino?.replace(')', '').trim() || '[completar]'],
-  ['CENTRO', papeleta.destino_centro || '']
-]);
+          y = drawMixedFichaBlock(y, datosPDF.destino);
           y += 6;
   
           pdf.setFont('helvetica', 'bold');
@@ -328,8 +330,12 @@ y = drawMixedFichaBlock(y, [
   
           pdf.save(`Papeleta_${papeleta.numero_papeleta}.pdf`);
         };
+        logo.onload = () => dibujarPDF(true);
+        // Si falta el recurso, la papeleta conserva todos sus datos y se descarga sin logo.
+        logo.onerror = () => dibujarPDF(false);
+        logo.src = 'assets/logo4.png';
       },
-      error: (err) => console.error('Error al generar PDF:', err)
+      error: (err) => this.showErrorAlert(this.getErrorMessage(err, 'No se pudo generar el PDF. Inténtelo nuevamente.'))
     });
   }
   
@@ -350,10 +356,9 @@ y = drawMixedFichaBlock(y, [
       this.itemsPerPage,
       this.selectedCategory,
       this.tableSearchText
-    ).subscribe({
+    ).pipe(finalize(() => { this.isLoading = false; })).subscribe({
       next: (response) => {
         this.isLoading = false;
-        console.log('▶ Respuesta de getPapeletas:', response);
         if (response.success) {
           this.papeletas = response.data?.data || [];
           this.allPapeletas = this.papeletas;
@@ -407,18 +412,18 @@ y = drawMixedFichaBlock(y, [
 
     if (isNew) {
       this.resetForm();
+      // Número orientativo: el definitivo lo asigna el backend al guardar
+      // (puede cambiar si otra persona guarda una papeleta antes).
       this.backendService.getUltimoNumeroPapeleta().subscribe({
         next: (response) => {
-          const lastNumber = response.data?.last_number ?? 0;
+          const lastNumber = Number(response.data?.last_number ?? 0);
           this.papeleta.numero_papeleta =
             'PA-' + String(lastNumber + 1).padStart(4, '0');
         },
         error: () => {
-          this.showErrorAlert('Error al obtener el número de papeleta.');
           this.papeleta.numero_papeleta = '';
         },
       });
-      this.papeleta.fecha = new Date().toISOString().split('T')[0];
     }
 
     this.getTiposFormulario();
@@ -448,9 +453,10 @@ y = drawMixedFichaBlock(y, [
     if (!this.papeleta.id_papeleta) {
       // Crear
       this.backendService.createPapeleta(body).subscribe({
-        next: () => {
+        next: (response) => {
+          const numero = response?.data?.numero_papeleta;
           this.closeModal();
-          this.showSuccessAlert('Papeleta creada exitosamente');
+          this.showSuccessAlert(numero ? `Papeleta ${numero} creada exitosamente` : 'Papeleta creada exitosamente');
           this.getPapeletas();
           this.resetForm();
         },
@@ -473,7 +479,12 @@ y = drawMixedFichaBlock(y, [
 
   editPapeleta(p: Papeleta): void {
     // Ya se reciben objetos completos en equipos_patrimoniales, no se requiere mapear a IDs
-    this.papeleta = { ...p, equipos_patrimoniales: p.equipos_patrimoniales || [] };
+    // El backend devuelve los IDs y la fecha 'YYYY-MM-DD' (lo que espera <input type="date">)
+    this.papeleta = {
+      ...p,
+      fecha: (p.fecha || '').slice(0, 10),
+      equipos_patrimoniales: p.equipos_patrimoniales || []
+    };
     this.normalizePapeletaTextFields();
     this.lugarOrigenSearch = this.papeleta.lugar_origen_nombre || '';
     this.lugarDestinoSearch = this.papeleta.lugar_destino_nombre || '';
@@ -484,6 +495,7 @@ y = drawMixedFichaBlock(y, [
   
 
   deletePapeleta(id: number): void {
+    if (!this.isAdmin) return;
     Swal.fire({
       title: '¿Está seguro?',
       text: '¿Desea eliminar esta papeleta?',
@@ -493,15 +505,18 @@ y = drawMixedFichaBlock(y, [
     }).then((result) => {
       if (result.isConfirmed) {
         this.isLoading = true;
-        this.backendService.deletePapeleta(id).subscribe({
+        let refrescar = false;
+        this.backendService.deletePapeleta(id).pipe(finalize(() => {
+          this.isLoading = false;
+          if (refrescar) this.getPapeletas();
+        })).subscribe({
           next: () => {
-            this.isLoading = false;
+            refrescar = true;
             this.showSuccessAlert('Papeleta eliminada exitosamente');
-            this.getPapeletas();
           },
-          error: () => {
+          error: (error) => {
             this.isLoading = false;
-            this.showErrorAlert('Error al eliminar papeleta');
+            this.showErrorAlert(this.getErrorMessage(error, 'Error al eliminar papeleta'));
           },
         });
       }
@@ -845,6 +860,7 @@ onBlurLugarDestino(): void {
   }
 
   private getErrorMessage(error: any, fallback: string): string {
+    if (error?.status === 403) return 'No tiene permisos para realizar esta acción.';
     return error?.error?.message || error?.error?.detail || fallback;
   }
 }

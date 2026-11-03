@@ -1,60 +1,30 @@
-    // index.js: Configuración del Servidor
-    require('dotenv').config();
-    const express = require('express');
-    const cors = require('cors');
-    const { errorHandler } = require('./utils/responseHandler');
+// index.js: arranque del servidor
+require('dotenv').config();
+const { logError } = require('./utils/securityLog');
+const { checkEnv } = require('./config/env');
 
-    // Middlewares personalizados
-    const { verifyToken } = require('./middlewares/authMiddleware');
+const { errors, warnings } = checkEnv();
+warnings.forEach((w) => console.warn(`⚠️  ${w}`));
+if (errors.length > 0) {
+    errors.forEach((e) => console.error(`❌ Configuración inválida: ${e}`));
+    process.exit(1);
+}
 
-    // Rutas
-    const authRoutes = require('./routes/authRoutes');
-    const papeletasRoutes = require('./routes/papeletasRoutes');
-    const trabajadoresRoutes = require('./routes/trabajadoresRoutes');
-    const equiposRoutes = require('./routes/equiposRoutes');
-    const lugaresRoutes = require('./routes/lugaresRoutes');
-    const registroMovRoutes = require('./routes/registroMovRoutes');
-    const estadisticasRoutes = require('./routes/estadisticasRoutes');
-    const centrosAsistencialesRoutes = require('./routes/centrosAsistencialesRoutes');
-    const estadosPapeletasRoutes = require('./routes/estadosPapeletasRoutes');
-    const papeletaEquiposRoutes = require('./routes/papeletaEquiposRoutes');
-    const rolesRoutes = require('./routes/rolesRoutes');
-    const tipoFormularioRoutes = require('./routes/tipoFormularioRoutes');
-    const usuariosRoutes = require('./routes/usuariosRoutes');
+const app = require('./app');
+const pool = require('./config/database');
 
-    const app = express();
-    const PORT = process.env.PORT || 3000;
+// Última red de seguridad: una promesa rechazada sin capturar no debe tumbar el servidor.
+process.on('unhandledRejection', (reason) => {
+    logError('Promesa rechazada sin capturar', reason);
+});
 
-    // Configuración del Middleware
-    app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:4200', credentials: true }));
-    app.use(express.json());
+const PORT = process.env.PORT || 3000;
 
-    // Ruta raíz
-    app.get('/', (req, res) => {
-        res.send('Bienvenido al Servidor de API de Papeletas. Usa las rutas de la API para interactuar.');
+app.listen(PORT, () => {
+    console.log(`Servidor escuchando en el puerto ${PORT}`);
+    // Aviso temprano si la base de datos no responde; el servidor sigue en marcha
+    // y responderá 503 hasta que PostgreSQL esté disponible.
+    pool.checkConnection().then((ok) => {
+        if (ok) console.log('🟢 Conexión con la base de datos verificada');
     });
-
-    // Rutas públicas
-    app.use('/api/auth', authRoutes);
-
-    // Rutas protegidas
-    app.use('/api/papeletas', verifyToken, papeletasRoutes);
-    app.use('/api/trabajadores', verifyToken, trabajadoresRoutes);
-    app.use('/api/equipos', verifyToken, equiposRoutes);
-    app.use('/api/lugares', verifyToken, lugaresRoutes);
-    app.use('/api/registro_movimientos', verifyToken, registroMovRoutes);
-    app.use('/api/estadisticas', verifyToken, estadisticasRoutes);
-    app.use('/api/centros_asistenciales', verifyToken, centrosAsistencialesRoutes);
-    app.use('/api/estados_papeletas', verifyToken, estadosPapeletasRoutes);
-    app.use('/api/papeleta_equipos', verifyToken, papeletaEquiposRoutes);
-    app.use('/api/roles', verifyToken, rolesRoutes);
-    app.use('/api/tipo_formulario', verifyToken, tipoFormularioRoutes);
-    app.use('/api/usuarios', verifyToken, usuariosRoutes);
-
-    // Middleware para manejo de errores no controlados
-    app.use(errorHandler);
-
-    // Iniciar el servidor
-    app.listen(PORT, () => {
-        console.log(`Servidor escuchando en el puerto ${PORT}`);
-    });
+});

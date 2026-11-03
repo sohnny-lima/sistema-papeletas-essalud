@@ -1,166 +1,247 @@
-<!-- Page Header -->
+<!-- Encabezado -->
 <div class="page-header">
-  <div class="flex items-center justify-between flex-wrap gap-3">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-           style="background:var(--essalud-blue)">
-        <i class="bi bi-geo-alt-fill text-white text-lg"></i>
-      </div>
+  <div class="es-page-head">
+    <div class="es-page-head__titulo">
+      <span class="es-page-icon" aria-hidden="true"><i class="bi bi-geo-alt"></i></span>
       <div>
-        <h2 class="!text-xl !font-bold !m-0" style="color:var(--essalud-navy)">Gestión de Lugares</h2>
-        <p class="text-sm text-gray-500 m-0">Ambientes y dependencias registradas</p>
+        <h2>Lugares</h2>
+        <p class="es-page-sub">Ambientes y dependencias de cada centro asistencial.</p>
+        @if (!isAdmin) {
+          <p class="es-page-sub es-page-sub--nota" data-permiso="solo-consulta">
+            <i class="bi bi-eye" aria-hidden="true"></i> Modo consulta: solo un administrador puede crear, editar o eliminar lugares.
+          </p>
+        }
       </div>
     </div>
-    <button class="flex items-center gap-2 text-sm font-semibold text-white px-4 py-2 rounded-xl shadow transition-all hover:opacity-90"
-            style="background:var(--essalud-blue); border:none;"
-            (click)="resetForm(); openModal()">
-      <i class="bi bi-plus-circle-fill"></i> Agregar Lugar
-    </button>
+    @if (isAdmin) {
+      <button type="button" class="es-btn es-btn--primario" data-accion="nuevo-lugar" (click)="nuevoLugar()">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> Nuevo lugar
+      </button>
+    }
   </div>
 </div>
 
-<!-- Loading -->
-<div *ngIf="isLoading" class="es-loader">
-  <div class="spinner-border" role="status" style="color:var(--essalud-blue)"></div>
-  <span>Cargando lugares...</span>
-</div>
-
-<!-- Search Bar -->
-<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5">
+<!-- Búsqueda -->
+<div class="es-toolbar">
   <div class="es-search flex-1">
-    <select class="category-select" [(ngModel)]="selectedCategory" (change)="applyFilter()">
-      <option value="">Todo</option>
+    <label for="categoriaLugares" class="visually-hidden">Buscar en</label>
+    <select id="categoriaLugares" class="category-select" [(ngModel)]="selectedCategory" (change)="applyFilter()">
+      <option value="">Todos los campos</option>
       <option value="nombre_ambiente">Ambiente</option>
       <option value="dependencia">Dependencia</option>
-      <option value="centro">Centro</option>
+      <option value="centro">Centro asistencial</option>
     </select>
-    <input type="text" placeholder="Buscar por ambiente, dependencia o centro..." [(ngModel)]="searchText" (keyup.enter)="applyFilter()" />
-    <button *ngIf="searchText || selectedCategory" type="button" class="search-clear-btn" (click)="clearSearch()" title="Limpiar búsqueda">
-      <i class="bi bi-x-lg"></i>
+    <label for="buscarLugares" class="visually-hidden">Texto a buscar</label>
+    <input id="buscarLugares" type="search" placeholder="Buscar por ambiente, dependencia o centro"
+      autocomplete="off" [(ngModel)]="searchText" (keyup.enter)="applyFilter()" (search)="!searchText && applyFilter()" />
+    @if (searchText || selectedCategory || filtroAplicado) {
+      <button type="button" class="search-clear-btn" (click)="clearSearch()"
+        aria-label="Limpiar búsqueda" title="Limpiar búsqueda">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    }
+    <button type="button" class="search-btn" (click)="applyFilter()" aria-label="Buscar" title="Buscar">
+      <i class="bi bi-search" aria-hidden="true"></i>
     </button>
-    <button type="button" class="search-btn" (click)="applyFilter()"><i class="bi bi-search"></i></button>
   </div>
 </div>
 
-<!-- Table -->
-<div *ngIf="!isLoading && lugares.length > 0; else noData"
-     class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-  <div class="overflow-x-auto">
-    <table class="es-table">
+<!-- Carga -->
+@if (isLoading) {
+  <div class="es-loader" role="status">
+    <div class="spinner-border" aria-hidden="true"></div>
+    <span>Cargando lugares…</span>
+  </div>
+}
+
+<!-- Tabla -->
+@if (!isLoading && lugares.length > 0) {
+  <div class="es-table-wrap">
+    <table class="es-table es-table--compacta es-table--apilada">
+      <caption class="visually-hidden">Lugares registrados</caption>
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Ambiente</th>
-          <th>Dependencia</th>
-          <th>Centro Asistencial</th>
-          <th class="text-center">Acciones</th>
+          <th scope="col" class="es-col-id">ID</th>
+          <th scope="col">Ambiente</th>
+          <th scope="col">Dependencia</th>
+          <th scope="col">Centro asistencial</th>
+          @if (isAdmin) {
+            <th scope="col" class="es-col-acciones"><span class="visually-hidden">Acciones</span></th>
+          }
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let lugar of lugares">
-          <td>
-            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold text-white"
-                  style="background:var(--essalud-blue)">{{ lugar.id_lugar }}</span>
-          </td>
-          <td>
-            <div class="flex items-center">
-              <span class="font-medium text-gray-800">{{ lugar.nombre_ambiente }}</span>
-            </div>
-          </td>
-          <td class="text-gray-600">{{ lugar.dependencia }}</td>
-          <td>
-            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium"
-                  style="background:#EFF6FF; color:#1E40AF;">
-              <i class="bi bi-hospital-fill" style="font-size:10px"></i>
-              {{ lugar.centro || 'Desconocido' }}
-            </span>
-          </td>
-          <td class="text-center">
-            <button class="w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all hover:opacity-90 me-1"
-                    style="background:#FFF8E1; border-color:#F59E0B; color:#B45309"
-                    (click)="editLugar(lugar)" title="Editar">
-              <i class="bi bi-pencil-fill text-xs"></i>
-            </button>
-            <button class="w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all hover:opacity-90"
-                    style="background:#FEF2F2; border-color:#F87171; color:#DC2626"
-                    (click)="deleteLugar(lugar.id_lugar ?? 0)" title="Eliminar">
-              <i class="bi bi-trash-fill text-xs"></i>
-            </button>
-          </td>
-        </tr>
+        @for (lugar of lugares; track lugar.id_lugar) {
+          <tr>
+            <td data-label="ID" class="es-col-id">{{ lugar.id_lugar }}</td>
+            <td data-label="Ambiente" class="es-celda-principal">{{ lugar.nombre_ambiente }}</td>
+            <td data-label="Dependencia">{{ lugar.dependencia }}</td>
+            <td data-label="Centro asistencial">
+              <span class="es-chip">
+                <i class="bi bi-hospital" aria-hidden="true"></i>
+                {{ lugar.centro || 'Sin centro' }}
+              </span>
+            </td>
+            @if (isAdmin) {
+              <td class="es-col-acciones">
+                <div class="es-acciones">
+                  <button type="button" class="es-icon-btn" data-accion="editar-lugar" (click)="editLugar(lugar)"
+                    [attr.aria-label]="'Editar lugar ' + lugar.nombre_ambiente" title="Editar">
+                    <i class="bi bi-pencil" aria-hidden="true"></i>
+                  </button>
+                  <button type="button" class="es-icon-btn es-icon-btn--peligro" data-accion="eliminar-lugar"
+                    (click)="deleteLugar(lugar.id_lugar ?? 0, lugar.nombre_ambiente)"
+                    [attr.aria-label]="'Eliminar lugar ' + lugar.nombre_ambiente" title="Eliminar">
+                    <i class="bi bi-trash" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </td>
+            }
+          </tr>
+        }
       </tbody>
     </table>
   </div>
-</div>
+} @else {
+  @if (!isLoading) {
+    <div class="es-state">
+      @if (hayFiltro) {
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <p class="es-state__titulo">Ningún lugar coincide con «{{ filtroAplicado }}»</p>
+        <button type="button" class="es-btn es-btn--secundario" (click)="clearSearch()">Limpiar búsqueda</button>
+      } @else {
+        <i class="bi bi-geo-alt" aria-hidden="true"></i>
+        <p class="es-state__titulo">Aún no hay lugares registrados</p>
+        <p class="es-state__texto">{{ isAdmin ? 'Registre el primero con «Nuevo lugar».' : 'Aparecerán aquí cuando un administrador los registre.' }}</p>
+      }
+    </div>
+  }
+}
 
-<ng-template #noData>
-  <div class="flex flex-col items-center justify-center py-16 text-gray-400">
-    <i class="bi bi-geo-alt text-5xl mb-3" style="color:#CBD5E1"></i>
-    <p class="font-medium">No hay lugares disponibles</p>
-    <p class="text-sm">Agrega el primer lugar usando el botón superior</p>
-  </div>
-</ng-template>
 
-<!-- Pagination -->
-<div *ngIf="!isLoading && totalItems > 0" class="mt-4">
-  <p class="text-center text-sm text-gray-400 mb-2">
-    Mostrando {{ currentStartIndex }}-{{ currentEndIndex }} de {{ totalItems }} lugares
-  </p>
-  <div class="es-pagination">
-    <button (click)="goToFirstPage()" [disabled]="currentPage === 1" title="Primera página">
-      <i class="bi bi-skip-start-fill"></i>
-    </button>
-    <button (click)="previousPage()" [disabled]="currentPage === 1" title="Anterior">
-      <i class="bi bi-chevron-left"></i>
-    </button>
-    <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
-    <button (click)="nextPage()" [disabled]="currentPage >= totalPages" title="Siguiente">
-      <i class="bi bi-chevron-right"></i>
-    </button>
-    <button (click)="goToLastPage()" [disabled]="currentPage >= totalPages" title="Última página">
-      <i class="bi bi-skip-end-fill"></i>
-    </button>
-  </div>
-</div>
+<!-- Paginación -->
+@if (!isLoading && totalItems > 0) {
+  <nav class="es-paginacion" aria-label="Paginación de lugares">
+    <p class="es-paginacion__resumen">
+      Mostrando {{ currentStartIndex }}–{{ currentEndIndex }} de {{ totalItems }} {{ totalItems === 1 ? 'lugar' : 'lugares' }}
+    </p>
+    <div class="es-pagination">
+      <button type="button" (click)="goToFirstPage()" [disabled]="currentPage === 1" aria-label="Primera página" title="Primera página">
+        <i class="bi bi-chevron-double-left" aria-hidden="true"></i>
+      </button>
+      <button type="button" (click)="previousPage()" [disabled]="currentPage === 1" aria-label="Página anterior" title="Página anterior">
+        <i class="bi bi-chevron-left" aria-hidden="true"></i>
+      </button>
+      <span class="page-info" aria-current="page">Página {{ currentPage }} de {{ totalPages }}</span>
+      <button type="button" (click)="nextPage()" [disabled]="currentPage >= totalPages" aria-label="Página siguiente" title="Página siguiente">
+        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+      </button>
+      <button type="button" (click)="goToLastPage()" [disabled]="currentPage >= totalPages" aria-label="Última página" title="Última página">
+        <i class="bi bi-chevron-double-right" aria-hidden="true"></i>
+      </button>
+    </div>
+  </nav>
+}
 
-<!-- Modal Agregar/Editar Lugar -->
-<div class="modal fade" id="lugarModal" tabindex="-1" aria-hidden="true">
+<!-- Modal crear / editar lugar -->
+<div #lugarModalRef class="modal fade" id="lugarModal" tabindex="-1" aria-labelledby="lugarModalTitulo" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header es-modal-header">
-        <h5 class="modal-title font-bold">
-          <i class="bi bi-geo-alt-fill me-2"></i>
-          {{ lugar && lugar.id_lugar ? 'Editar Lugar' : 'Agregar Lugar' }}
-        </h5>
+        <h3 class="modal-title es-modal-title" id="lugarModalTitulo">
+          {{ lugar && lugar.id_lugar ? 'Editar lugar' : 'Nuevo lugar' }}
+        </h3>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
-      <div class="modal-body p-5">
-        <form>
-          <div class="mb-4">
-            <label for="nombreAmbiente" class="block text-sm font-semibold text-gray-700 mb-1">Nombre del Ambiente</label>
-            <input type="text" class="form-control rounded-xl" id="nombreAmbiente"
-                   [(ngModel)]="lugar.nombre_ambiente" name="nombre_ambiente" required />
+      <form (ngSubmit)="onSubmit()" novalidate>
+        <div class="modal-body es-modal-body">
+          <p class="es-form-nota es-form-nota--suave">Los campos con <span class="es-required" aria-hidden="true">*</span> son obligatorios.</p>
+
+          @if (errorFormulario) {
+            <div class="es-form-alert" role="alert">
+              <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+              <span>{{ errorFormulario }}</span>
+            </div>
+          }
+
+          <div class="es-field">
+            <label for="nombreAmbiente" class="es-label">Ambiente <span class="es-required" aria-hidden="true">*</span></label>
+            <input type="text" class="form-control" id="nombreAmbiente" name="nombre_ambiente" autocomplete="off"
+              placeholder="Ej.: Consultorio 3" required
+              [(ngModel)]="lugar.nombre_ambiente" (ngModelChange)="limpiarError('nombre_ambiente')"
+              [attr.aria-invalid]="errores.nombre_ambiente ? 'true' : null"
+              [attr.aria-describedby]="errores.nombre_ambiente ? 'nombreAmbiente-error' : null" />
+            @if (errores.nombre_ambiente) {
+              <p id="nombreAmbiente-error" class="es-field-error">
+                <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i> <span>{{ errores.nombre_ambiente }}</span>
+              </p>
+            }
           </div>
-          <div class="mb-4">
-            <label for="dependencia" class="block text-sm font-semibold text-gray-700 mb-1">Dependencia</label>
-            <input type="text" class="form-control rounded-xl" id="dependencia"
-                   [(ngModel)]="lugar.dependencia" name="dependencia" required />
+
+          <div class="es-field">
+            <label for="dependencia" class="es-label">Dependencia <span class="es-required" aria-hidden="true">*</span></label>
+            <input type="text" class="form-control" id="dependencia" name="dependencia" autocomplete="off"
+              placeholder="Ej.: Medicina general" required
+              [(ngModel)]="lugar.dependencia" (ngModelChange)="limpiarError('dependencia')"
+              [attr.aria-invalid]="errores.dependencia ? 'true' : null"
+              [attr.aria-describedby]="errores.dependencia ? 'dependencia-error' : null" />
+            @if (errores.dependencia) {
+              <p id="dependencia-error" class="es-field-error">
+                <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i> <span>{{ errores.dependencia }}</span>
+              </p>
+            }
           </div>
-          <div class="mb-5">
-            <label for="centro" class="block text-sm font-semibold text-gray-700 mb-1">Centro Asistencial</label>
-            <select class="form-select rounded-xl" id="centro"
-                    [(ngModel)]="lugar.id_centro" name="id_centro" required>
-              <option value="0">Seleccione un centro</option>
-              <option *ngFor="let c of centros" [value]="c.id_centro">{{ c.nombre_centro }}</option>
-            </select>
+
+          <div class="es-field">
+            <label for="centro" class="es-label">Centro asistencial <span class="es-required" aria-hidden="true">*</span></label>
+            <div class="es-select-accion">
+              <select class="form-select" id="centro" name="id_centro" required
+                [(ngModel)]="lugar.id_centro" (ngModelChange)="limpiarError('id_centro')"
+                [attr.aria-invalid]="errores.id_centro ? 'true' : null"
+                [attr.aria-describedby]="errores.id_centro ? 'centro-error' : null">
+                <option [ngValue]="0" disabled>Seleccione un centro</option>
+                @for (c of centros; track c.id_centro) {
+                  <option [ngValue]="c.id_centro">{{ c.nombre_centro }}</option>
+                }
+              </select>
+              @if (isAdmin) {
+                <button #botonNuevoCentro type="button" class="es-btn es-btn--secundario"
+                  data-accion="nuevo-centro-lugar" (click)="abrirNuevoCentro()"
+                  [disabled]="mostrarNuevoCentro"
+                  aria-controls="panelNuevoCentro" [attr.aria-expanded]="mostrarNuevoCentro">
+                  <i class="bi bi-plus-lg" aria-hidden="true"></i> Nuevo centro
+                </button>
+              }
+            </div>
+            @if (errores.id_centro) {
+              <p id="centro-error" class="es-field-error">
+                <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i> <span>{{ errores.id_centro }}</span>
+              </p>
+            }
+
+            @if (mostrarNuevoCentro) {
+              <div id="panelNuevoCentro" class="es-subpanel">
+                <app-centro-form [compacto]="true"
+                  [existentes]="centros"
+                  campoId="nombreCentroNuevo"
+                  (guardado)="onCentroCreado($event)"
+                (cancelado)="cerrarNuevoCentro()"></app-centro-form>
+              </div>
+            }
           </div>
-          <button type="button" class="w-full py-3 rounded-xl text-white font-semibold text-sm shadow-lg"
-                  style="background:var(--essalud-blue); border:none"
-                  (click)="onSubmit()">
-            <i class="bi bi-check-circle-fill me-2"></i> Guardar Cambios
+        </div>
+
+        <div class="modal-footer es-modal-footer">
+          <button type="button" class="es-btn es-btn--secundario" data-bs-dismiss="modal" [disabled]="guardando">Cancelar</button>
+          <button type="submit" class="es-btn es-btn--primario" [disabled]="guardando || mostrarNuevoCentro"
+            [attr.aria-busy]="guardando ? 'true' : null">
+            @if (guardando) {
+              <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            }
+            {{ guardando ? 'Guardando…' : (lugar && lugar.id_lugar ? 'Guardar cambios' : 'Guardar lugar') }}
           </button>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   </div>
 </div>

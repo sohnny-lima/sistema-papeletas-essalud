@@ -1,0 +1,53 @@
+<div class="page-header">
+  <div class="es-page-head">
+    <div class="es-page-head__titulo">
+      <span class="es-page-icon" aria-hidden="true"><i class="bi bi-info-circle"></i></span>
+      <div>
+        <h2>Acerca del sistema</h2>
+        <p class="es-page-sub">Identificación, versión y créditos.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="acerca" aria-labelledby="acercaNombre">
+  <div class="acerca__tarjeta">
+    <h3 id="acercaNombre" class="acerca__nombre">Sistema de Papeletas de Movimiento de Bienes Patrimoniales</h3>
+    <p class="acerca__descripcion">
+      Registro de las papeletas del Formulario Único Patrimonial: el traslado de equipos entre trabajadores y
+      lugares de origen y destino, con su número correlativo, el detalle de los bienes y el PDF de la papeleta.
+    </p>
+
+    <dl class="acerca__datos">
+      <div>
+        <dt>Versión</dt>
+        <dd>
+          <span class="acerca__version" data-acerca="version">{{ version }}</span>
+          @if (candidata) {
+            <span class="es-chip acerca__estado">Versión candidata</span>
+          }
+        </dd>
+      </div>
+      <div>
+        <dt>Desarrollado por</dt>
+        <dd data-acerca="desarrollador">{{ desarrollador }}</dd>
+      </div>
+      <div>
+        <dt>Año de desarrollo</dt>
+        <dd data-acerca="anio">{{ anio }}</dd>
+      </div>
+    </dl>
+  </div>
+
+  <div class="acerca__tarjeta">
+    <h3 class="acerca__subtitulo">Tecnologías principales</h3>
+    <ul class="acerca__tecnologias">
+      @for (t of tecnologias; track t.nombre) {
+        <li>
+          <i class="bi {{ t.icono }}" aria-hidden="true"></i>
+          <span><strong>{{ t.nombre }}</strong> <span class="acerca__detalle">{{ t.detalle }}</span></span>
+        </li>
+      }
+    </ul>
+  </div>
+</section>

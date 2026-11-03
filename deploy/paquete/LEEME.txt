@@ -1,0 +1,23 @@
+SISTEMA DE PAPELETAS DE MOVIMIENTO DE BIENES PATRIMONIALES (FORMATO ÚNICO PATRIMONIAL)
+Paquete de instalación con Docker · versión y revisión en el archivo VERSION
+
+VERSIÓN CANDIDATA: pendiente de la aceptación del área usuaria y de la validación de producción.
+Uso exclusivo de la instalación autorizada. Autoría, derechos y condiciones de uso: pendientes
+de validación institucional (documentacion/condiciones-de-uso.md y acta-entrega-recepcion.md).
+
+REQUISITOS
+  Linux x86_64 · Docker Engine 24 o posterior · Docker Compose v2.20 o posterior · 2 GB de RAM
+  10 GB libres · acceso como root o con sudo · proxy HTTPS o certificado de EsSalud.
+  No necesita Internet, repositorios ni compilar código: las imágenes vienen en imagenes/.
+
+INSTALACIÓN EN 6 PASOS (detalle en documentacion/guia-instalacion.md)
+  1. sudo bash scripts/verificar-paquete.sh       Integridad (SHA-256) y versiones de Docker
+  2. cp compose/env.example compose/.env           Ajuste ESCENARIO, TLS, HTTP_BIND y, en el escenario B, DB_HOST
+  3. (Escenario B o TLS=propio) coloque en secretos/ los archivos que indica secretos/LEEME.md
+  4. sudo bash scripts/instalar.sh                 Instalación guiada; pide el primer administrador
+  5. sudo bash scripts/comprobar.sh                Estado y salud
+  6. HTTPS, copias programadas (scripts/copia.sh) y documentacion/lista-verificacion-instalacion.md
+
+CONTENIDO
+  VERSION · SHA256SUMS · imagenes/ · compose/ · secretos/ (vacía) · scripts/ · documentacion/
+  No incluye código fuente, historial, pruebas, datos de demostración ni secretos.

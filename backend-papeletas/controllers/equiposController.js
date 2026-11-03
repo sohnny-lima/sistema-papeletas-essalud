@@ -6,7 +6,7 @@ const { getPagination } = require('../utils/pagination');
 const getAllEquipos = async (req, res) => {
   const { page, pageSize, offset } = getPagination(req.query);
   const category = req.query.category || '';
-  const filterText = (req.query.filterText || '').trim();
+  const filterText = String(req.query.filterText || '').trim();
 
   try {
     let query = 'SELECT * FROM equipos';
@@ -66,7 +66,6 @@ const getAllEquipos = async (req, res) => {
       'Equipos obtenidos exitosamente'
     );
   } catch (error) {
-    console.error('Error al obtener los equipos:', error);
     return errorResponse(res, error, 'Error al obtener los equipos');
   }
 };
@@ -86,7 +85,6 @@ const getEquipoById = async (req, res) => {
     }
     successResponse(res, result.rows[0], 'Equipo obtenido exitosamente');
   } catch (error) {
-    console.error('Error al obtener el equipo:', error);
     errorResponse(res, error, 'Error al obtener el equipo');
   }
 };
@@ -127,7 +125,6 @@ const createEquipo = async (req, res) => {
 
     successResponse(res, result.rows[0], 'Equipo creado exitosamente');
   } catch (error) {
-    console.error('Error al crear el equipo:', error);
     errorResponse(res, error, 'Error al crear el equipo');
   }
 };
@@ -181,7 +178,6 @@ const updateEquipo = async (req, res) => {
 
     successResponse(res, result.rows[0], 'Equipo actualizado exitosamente');
   } catch (error) {
-    console.error('Error al actualizar el equipo:', error);
     errorResponse(res, error, 'Error al actualizar el equipo');
   }
 };
@@ -199,7 +195,6 @@ const deleteEquipo = async (req, res) => {
 
     successResponse(res, result.rows[0], 'Equipo eliminado exitosamente');
   } catch (error) {
-    console.error('Error al eliminar el equipo:', error);
     errorResponse(res, error, 'Error al eliminar el equipo');
   }
 };

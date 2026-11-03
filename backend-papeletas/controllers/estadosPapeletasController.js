@@ -7,7 +7,6 @@ const getAllEstados = async (req, res) => {
         const result = await pool.query('SELECT * FROM estados_papeletas ORDER BY id_estado ASC');
         successResponse(res, result.rows, 'Estados de papeletas obtenidos exitosamente');
     } catch (error) {
-        console.error('Error al obtener los estados de papeletas:', error);
         errorResponse(res, error, 'Error al obtener los estados de papeletas');
     }
 };
@@ -23,7 +22,6 @@ const getEstadoById = async (req, res) => {
         }
         successResponse(res, result.rows[0], 'Estado de papeleta obtenido exitosamente');
     } catch (error) {
-        console.error('Error al obtener el estado de papeleta:', error);
         errorResponse(res, error, 'Error al obtener el estado de papeleta');
     }
 };
@@ -42,7 +40,6 @@ const createEstado = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Estado de papeleta creado exitosamente');
     } catch (error) {
-        console.error('Error al crear el estado de papeleta:', error);
         errorResponse(res, error, 'Error al crear el estado de papeleta');
     }
 };
@@ -66,7 +63,6 @@ const updateEstado = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Estado de papeleta actualizado exitosamente');
     } catch (error) {
-        console.error('Error al actualizar el estado de papeleta:', error);
         errorResponse(res, error, 'Error al actualizar el estado de papeleta');
     }
 };
@@ -84,7 +80,6 @@ const deleteEstado = async (req, res) => {
 
         successResponse(res, result.rows[0], 'Estado de papeleta eliminado exitosamente');
     } catch (error) {
-        console.error('Error al eliminar el estado de papeleta:', error);
         errorResponse(res, error, 'Error al eliminar el estado de papeleta');
     }
 };

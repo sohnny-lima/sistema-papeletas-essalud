@@ -1,0 +1,39 @@
+server {
+    listen 8080;
+    root /usr/share/nginx/html;
+    index index.html;
+    client_max_body_size 100k;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy same-origin always;
+    add_header X-Frame-Options DENY always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    # Solo los nombres con hash generados por Angular reciben caché inmutable.
+    add_header Cache-Control $cache_control always;
+    location = /salud { access_log off; return 200 'activo'; }
+    location /api/ {
+        # g012 #2: Nginx emite una sola copia y conserva la política de caché de la API.
+        proxy_hide_header Content-Security-Policy;
+        proxy_hide_header X-Frame-Options;
+        proxy_hide_header Referrer-Policy;
+        proxy_hide_header X-Content-Type-Options;
+        proxy_hide_header Permissions-Policy;
+        proxy_hide_header Cache-Control;
+        # DNS de Docker: vuelve a resolver cuando se recrea el backend.
+        resolver 127.0.0.11 valid=10s ipv6=off;
+        set $backend ${BACKEND_URL};
+        proxy_pass $backend$request_uri;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $proto_original;
+        # Cierre VM1: el mismo identificador en el registro de Nginx y en el del backend.
+        proxy_set_header X-Request-Id $request_id;
+        proxy_set_header Connection "";
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
+    }
+    location = /index.html { try_files /index.html =404; }
+    location / { try_files $uri $uri/ /index.html; }
+}

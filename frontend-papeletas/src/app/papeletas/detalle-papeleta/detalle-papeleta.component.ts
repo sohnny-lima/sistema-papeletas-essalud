@@ -1,16 +1,14 @@
-import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { BackendService } from '../../services/backend.service';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 @Component({
-  selector: 'app-detalle-papeleta',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './detalle-papeleta.component.html',
-  styleUrls: ['./detalle-papeleta.component.css'] // ✅ Asegúrate de que esta línea está presente
+    selector: 'app-detalle-papeleta',
+    imports: [CommonModule],
+    templateUrl: './detalle-papeleta.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    styleUrls: ['./detalle-papeleta.component.css'] // ✅ Asegúrate de que esta línea está presente
 })
 
 export class DetallePapeletaComponent implements OnInit {

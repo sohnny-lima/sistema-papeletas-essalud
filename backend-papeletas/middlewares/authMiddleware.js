@@ -1,30 +1,34 @@
 const jwt = require('jsonwebtoken');
+const pool = require('../config/database');
+const { rolDesdeId } = require('../utils/roles');
+const { esIdValido } = require('../utils/idValidation');
+const { errorResponse } = require('../utils/responseHandler');
 
-// Middleware para verificar si el usuario tiene un token válido
-const verifyToken = (req, res, next) => {
-    try {
-        const authHeader = req.headers.authorization;
-
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({
-                success: false,
-                message: 'Token no proporcionado o formato incorrecto.',
-            });
-        }
-
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        // Guardar la información decodificada del usuario en el objeto de la solicitud
-        req.usuario = decoded;
-        next();
-    } catch (error) {
-        console.error('Error al verificar el token:', error.message);
-        res.status(401).json({
-            success: false,
-            message: 'Token inválido o expirado.',
-        });
+// U2: la firma y la versión autorizan la sesión; el rol vigente lo decide la base.
+const verifyToken = async (req, res, next) => {
+    let decoded;
+    const invalida = () => errorResponse(res, null, 'Su sesión ya no es válida. Inicie sesión de nuevo.', 401);
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return errorResponse(res, null, 'Token no proporcionado o formato incorrecto.', 401);
     }
+    try {
+        decoded = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET, { algorithms: ['HS256'] });
+    } catch (error) {
+        return errorResponse(res, null, 'Token inválido o expirado.', 401);
+    }
+    if (!Number.isInteger(decoded.ver) || decoded.ver < 0 || !Number.isInteger(decoded.idUsuario) || !esIdValido(decoded.idUsuario)) return invalida();
+    try {
+        const result = await pool.query('SELECT id_usuario, nombre_usuario, id_rol, activo, version_sesion FROM usuarios WHERE id_usuario = $1', [decoded.idUsuario]);
+        const usuario = result.rows[0];
+        if (!usuario || !usuario.activo || usuario.version_sesion !== decoded.ver) return invalida();
+        req.usuario = { ...decoded, idUsuario: usuario.id_usuario, nombreUsuario: usuario.nombre_usuario,
+            rol: rolDesdeId(usuario.id_rol) };
+    } catch (error) {
+        return errorResponse(res, error, 'No se pudo verificar la sesión');
+    }
+    // Una petición ya autorizada termina aunque otra invalide después la sesión.
+    return next();
 };
 
 // Middleware para verificar si el usuario tiene un rol específico
@@ -33,19 +37,12 @@ const verifyRole = (requiredRole) => (req, res, next) => {
         const { rol } = req.usuario;
 
         if (rol !== requiredRole) {
-            return res.status(403).json({
-                success: false,
-                message: `Acceso denegado. Se requiere el rol de ${requiredRole}.`,
-            });
+            return errorResponse(res, null, `Acceso denegado. Se requiere el rol de ${requiredRole}.`, 403);
         }
 
         next();
     } catch (error) {
-        console.error('Error al verificar el rol:', error.message);
-        res.status(403).json({
-            success: false,
-            message: 'No tienes los permisos necesarios.',
-        });
+        return errorResponse(res, null, 'No tienes los permisos necesarios.', 403);
     }
 };
 

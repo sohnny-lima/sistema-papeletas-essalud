@@ -1,6 +1,9 @@
 {
   "name": "frontend-papeletas",
-  "version": "0.0.0",
+  "engines": {
+    "node": ">=24.15.0 <25"
+  },
+  "version": "1.0.0-rc.2",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -10,34 +13,34 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^18.2.13",
-    "@angular/common": "^18.2.13",
-    "@angular/compiler": "^18.2.13",
-    "@angular/core": "^18.2.13",
-    "@angular/forms": "^18.2.13",
-    "@angular/platform-browser": "^18.2.13",
-    "@angular/platform-browser-dynamic": "^18.2.13",
-    "@angular/router": "^18.2.13",
-    "@types/bootstrap": "^5.2.10",
-    "bootstrap": "^5.3.3",
-    "bootstrap-icons": "^1.11.3",
-    "chart.js": "^4.4.7",
+    "@angular/common": "^22.2.3",
+    "@angular/compiler": "^22.2.3",
+    "@angular/core": "^22.2.3",
+    "@angular/forms": "^22.2.3",
+    "@angular/platform-browser": "^22.2.3",
+    "@angular/platform-browser-dynamic": "^22.2.3",
+    "@angular/router": "^22.2.3",
+    "@fontsource/inter": "5.3.0",
+    "@types/bootstrap": "^5.2.11",
+    "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.2",
+    "chart.js": "^4.6.1",
     "chartjs-plugin-datalabels": "^2.2.0",
-    "html2canvas": "^1.4.1",
-    "jspdf": "^2.5.2",
-    "jspdf-autotable": "^3.8.4",
-    "jwt-decode": "^3.1.2",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
+    "jwt-decode": "^4.0.0",
     "rxjs": "~7.8.0",
-    "sweetalert2": "^11.6.13",
+    "sweetalert2": "^11.26.25",
     "tslib": "^2.3.0",
-    "zone.js": "~0.14.3"
+    "zone.js": "~0.15.1"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^18.2.12",
-    "@angular/cli": "^18.2.12",
-    "@angular/compiler-cli": "^18.2.13",
+    "@angular-devkit/build-angular": "^22.2.5",
+    "@angular/cli": "^22.2.5",
+    "@angular/compiler-cli": "^22.2.3",
     "@types/jasmine": "~5.1.0",
     "autoprefixer": "^10.5.0",
+    "istanbul-lib-instrument": "^6.0.3",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
@@ -46,6 +49,6 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "postcss": "^8.5.10",
     "tailwindcss": "^3.4.19",
-    "typescript": "~5.4.2"
+    "typescript": "~6.0.3"
   }
 }

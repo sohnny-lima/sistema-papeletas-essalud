@@ -1,31 +1,20 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AuthService } from './auth.service';
+import { API_BASE_URL } from './api-config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BackendService {
   // Base URL del backend
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = inject(API_BASE_URL);
 
-  constructor(
-    private http: HttpClient,
-    private authService: AuthService
-  ) {}
+  constructor(private http: HttpClient) {}
 
   // -------------------------------------------------------
   // MÉTODOS AUXILIARES
   // -------------------------------------------------------
-
-  // Obtiene encabezados con token de autenticación
-  private getAuthHeaders(): HttpHeaders {
-    const token = this.authService.getToken();
-    return new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-    });
-  }
 
   // Construye parámetros de consulta para paginación y filtros
   private buildParams(
@@ -52,15 +41,11 @@ export class BackendService {
   // -------------------------------------------------------
 
   getTiposFormulario(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/papeletas/tipos/formulario`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.get<any>(`${this.apiUrl}/papeletas/tipos/formulario`);
   }
 
   getUltimoNumeroPapeleta(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/papeletas/last/number`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.get<any>(`${this.apiUrl}/papeletas/last/number`);
   }
 
   // -------------------------------------------------------
@@ -70,21 +55,18 @@ export class BackendService {
   searchTrabajadores(search: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/papeletas/trabajadores/buscar`, {
       params: { search },
-      headers: this.getAuthHeaders(),
     });
   }
 
   searchLugares(searchValue: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/lugares/search`, {
       params: { searchText: searchValue }, // ✅ Clave correcta
-      headers: this.getAuthHeaders(),
     });
   }
 
   searchEquipos(search: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/papeletas/search/equipos`, {
       params: { search },
-      headers: this.getAuthHeaders(),
     });
   }
 
@@ -100,33 +82,24 @@ export class BackendService {
   ): Observable<any> {
     const params = this.buildParams(page, pageSize, filterCategory, filterText);
     return this.http.get<any>(`${this.apiUrl}/equipos`, {
-      headers: this.getAuthHeaders(),
       params,
     });
   }
 
   getEquipoById(id: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/equipos/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.get<any>(`${this.apiUrl}/equipos/${id}`);
   }
 
   createEquipo(equipo: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/equipos`, equipo, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.post<any>(`${this.apiUrl}/equipos`, equipo);
   }
 
   updateEquipo(id: number, equipo: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/equipos/${id}`, equipo, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.put<any>(`${this.apiUrl}/equipos/${id}`, equipo);
   }
 
   deleteEquipo(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/equipos/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.delete<any>(`${this.apiUrl}/equipos/${id}`);
   }
 
   // -------------------------------------------------------
@@ -141,33 +114,24 @@ export class BackendService {
   ): Observable<any> {
     const params = this.buildParams(page, pageSize, filterCategory, filterText);
     return this.http.get<any>(`${this.apiUrl}/trabajadores`, {
-      headers: this.getAuthHeaders(),
       params,
     });
   }
 
   getTrabajadorById(id: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/trabajadores/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.get<any>(`${this.apiUrl}/trabajadores/${id}`);
   }
 
   createTrabajador(trabajador: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/trabajadores`, trabajador, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.post<any>(`${this.apiUrl}/trabajadores`, trabajador);
   }
 
   updateTrabajador(id: number, trabajador: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/trabajadores/${id}`, trabajador, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.put<any>(`${this.apiUrl}/trabajadores/${id}`, trabajador);
   }
 
   deleteTrabajador(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/trabajadores/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.delete<any>(`${this.apiUrl}/trabajadores/${id}`);
   }
 
   // -------------------------------------------------------
@@ -182,33 +146,24 @@ export class BackendService {
   ): Observable<any> {
     const requestParams = this.buildParams(page, pageSize, filterCategory, filterText);
     return this.http.get<any>(`${this.apiUrl}/papeletas`, {
-      headers: this.getAuthHeaders(),
       params: requestParams,
     });
   }
 
   getPapeletaById(id: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/papeletas/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.get<any>(`${this.apiUrl}/papeletas/${id}`);
   }
 
   createPapeleta(papeleta: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/papeletas`, papeleta, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.post<any>(`${this.apiUrl}/papeletas`, papeleta);
   }
 
   updatePapeleta(id: number, updatedData: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/papeletas/${id}`, updatedData, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.put<any>(`${this.apiUrl}/papeletas/${id}`, updatedData);
   }
 
   deletePapeleta(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/papeletas/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.delete<any>(`${this.apiUrl}/papeletas/${id}`);
   }
 
   // -------------------------------------------------------
@@ -223,33 +178,24 @@ export class BackendService {
   ): Observable<any> {
     const params = this.buildParams(page, pageSize, filterCategory, filterText);
     return this.http.get<any>(`${this.apiUrl}/lugares`, {
-      headers: this.getAuthHeaders(),
       params,
     });
   }
 
   getLugarById(id: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/lugares/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.get<any>(`${this.apiUrl}/lugares/${id}`);
   }
 
   createLugar(lugarData: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/lugares`, lugarData, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.post<any>(`${this.apiUrl}/lugares`, lugarData);
   }
 
   updateLugar(id: number, updatedData: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/lugares/${id}`, updatedData, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.put<any>(`${this.apiUrl}/lugares/${id}`, updatedData);
   }
 
   deleteLugar(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/lugares/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.delete<any>(`${this.apiUrl}/lugares/${id}`);
   }
 
   // -------------------------------------------------------
@@ -257,9 +203,7 @@ export class BackendService {
   // -------------------------------------------------------
 
   getEstadisticas(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/estadisticas`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.get<any>(`${this.apiUrl}/estadisticas`);
   }
 
   // -------------------------------------------------------
@@ -269,42 +213,28 @@ export class BackendService {
   getRegistroMovimientos(page: number, pageSize: number): Observable<any> {
     const params = this.buildParams(page, pageSize);
     return this.http.get<any>(`${this.apiUrl}/registro_movimientos`, {
-      headers: this.getAuthHeaders(),
       params,
     });
   }
 
-  createRegistroMovimiento(movimientoData: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/registro_movimientos`, movimientoData, {
-      headers: this.getAuthHeaders(),
-    });
-  }
-
   getRegistroMovimientoById(id: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/registro_movimientos/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
-  }
-
-  updateRegistroMovimiento(id: number, updatedData: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/registro_movimientos/${id}`, updatedData, {
-      headers: this.getAuthHeaders(),
-    });
-  }
-
-  deleteRegistroMovimiento(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/registro_movimientos/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.get<any>(`${this.apiUrl}/registro_movimientos/${id}`);
   }
 
   // -------------------------------------------------------
   // CENTROS ASISTENCIALES
   // -------------------------------------------------------
 
-  getCentros(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/centros_asistenciales`, {
-      headers: this.getAuthHeaders(),
-    });
+  // Respuesta { success, message, data: [{ id_centro, nombre_centro, total_lugares }] }
+  getCentros(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/centros_asistenciales`);
+  }
+
+  createCentro(centroData: { nombre_centro: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/centros_asistenciales`, centroData);
+  }
+
+  updateCentro(id: number, centroData: { nombre_centro: string }): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/centros_asistenciales/${id}`, centroData);
   }
 }

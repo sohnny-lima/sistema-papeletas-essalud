@@ -1,0 +1,128 @@
+<div class="page-header">
+  <div class="es-page-head">
+    <div class="es-page-head__titulo">
+      <span class="es-page-icon" aria-hidden="true"><i class="bi bi-hospital"></i></span>
+      <div>
+        <h2>Centros asistenciales</h2>
+        <p class="es-page-sub">Establecimientos a los que pertenecen los lugares.</p>
+      </div>
+    </div>
+    <button type="button" class="es-btn es-btn--primario" data-accion="nuevo-centro" (click)="nuevoCentro()">
+      <i class="bi bi-plus-lg" aria-hidden="true"></i> Nuevo centro
+    </button>
+  </div>
+</div>
+
+<div class="es-toolbar">
+  <div class="es-search es-search--simple">
+    <i class="bi bi-search es-search__icono" aria-hidden="true"></i>
+    <label for="filtroCentros" class="visually-hidden">Buscar centro asistencial</label>
+    <input id="filtroCentros" type="search" placeholder="Buscar por nombre" autocomplete="off"
+      [(ngModel)]="filtro" />
+    @if (filtro) {
+      <button type="button" class="search-clear-btn" (click)="limpiarFiltro()"
+        aria-label="Limpiar búsqueda">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    }
+  </div>
+  @if (!cargando && !errorCarga) {
+    <p class="es-toolbar__total" aria-live="polite">{{ resumen }}</p>
+  }
+</div>
+
+@if (cargando) {
+  <div class="es-loader" role="status">
+    <div class="spinner-border" aria-hidden="true"></div>
+    <span>Cargando centros asistenciales…</span>
+  </div>
+}
+
+@if (!cargando && errorCarga) {
+  <div class="es-state es-state--error" role="alert">
+    <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+    <p class="es-state__titulo">{{ errorCarga }}</p>
+    <button type="button" class="es-btn es-btn--secundario" (click)="cargarCentros()">Reintentar</button>
+  </div>
+}
+
+@if (!cargando && !errorCarga) {
+  @if (centros.length === 0) {
+    <div class="es-state">
+      <i class="bi bi-hospital" aria-hidden="true"></i>
+      <p class="es-state__titulo">Aún no hay centros asistenciales</p>
+      <p class="es-state__texto">Cree el primero para poder asignarlo a los lugares.</p>
+      <button type="button" class="es-btn es-btn--primario" (click)="nuevoCentro()">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> Nuevo centro
+      </button>
+    </div>
+  }
+  @if (centros.length > 0 && centrosFiltrados.length === 0) {
+    <div class="es-state">
+      <i class="bi bi-search" aria-hidden="true"></i>
+      <p class="es-state__titulo">Ningún centro coincide con «{{ filtro.trim() }}»</p>
+      <button type="button" class="es-btn es-btn--secundario" (click)="limpiarFiltro()">Limpiar búsqueda</button>
+    </div>
+  }
+  @if (centrosFiltrados.length > 0) {
+    <div class="es-table-wrap">
+      <table class="es-table es-table--compacta es-table--apilada">
+        <caption class="visually-hidden">Centros asistenciales registrados</caption>
+        <thead>
+          <tr>
+            <th scope="col">Centro asistencial</th>
+            <th scope="col" class="es-col-num">Lugares</th>
+            <th scope="col" class="es-col-acciones"><span class="visually-hidden">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of centrosFiltrados; track c.id_centro) {
+            <tr>
+              <td data-label="Centro asistencial" class="es-celda-principal">{{ c.nombre_centro }}</td>
+              <td data-label="Lugares" class="es-col-num">{{ c.total_lugares ?? 0 }}</td>
+              <td class="es-col-acciones">
+                <button type="button" class="es-btn es-btn--secundario es-btn--sm" data-accion="editar-centro"
+                  [attr.aria-label]="'Editar centro ' + c.nombre_centro" (click)="editarCentro(c)">
+                  <i class="bi bi-pencil" aria-hidden="true"></i> Editar
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}
+
+<!-- Modal crear / editar centro -->
+<div #modalCentro class="modal fade" id="centroModal" tabindex="-1" aria-labelledby="centroModalTitulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header es-modal-header">
+        <h3 class="modal-title es-modal-title" id="centroModalTitulo">
+          {{ centroEnEdicion ? 'Editar centro asistencial' : 'Nuevo centro asistencial' }}
+        </h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body es-modal-body">
+        @if (centroEnEdicion && (centroEnEdicion.total_lugares ?? 0) > 0) {
+          <p class="es-form-nota">
+            <i class="bi bi-info-circle" aria-hidden="true"></i>
+            Este centro tiene {{ centroEnEdicion.total_lugares }}
+            {{ centroEnEdicion.total_lugares === 1 ? 'lugar asociado, que mostrará' : 'lugares asociados, que mostrarán' }}
+            el nombre nuevo.
+          </p>
+        }
+        @if (formularioAbierto) {
+          <app-centro-form
+            [centro]="centroEnEdicion"
+            [existentes]="centros"
+            campoId="nombreCentroModal"
+            [enfocarAlIniciar]="false"
+            (guardado)="onGuardado($event)"
+          (cancelado)="onCancelado()"></app-centro-form>
+        }
+      </div>
+    </div>
+  </div>
+</div>

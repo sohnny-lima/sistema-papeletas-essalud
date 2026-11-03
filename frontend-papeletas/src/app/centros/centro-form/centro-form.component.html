@@ -1,0 +1,49 @@
+<div class="es-centro-form" [class.es-centro-form--compacto]="compacto" role="group"
+  [attr.aria-labelledby]="campoId + '-etiqueta'"
+  (keydown.escape)="onEscape($event)">
+  <label class="es-label" [id]="campoId + '-etiqueta'" [for]="campoId">
+    {{ compacto ? 'Nombre del nuevo centro' : 'Nombre del centro asistencial' }}
+    <span class="es-required" aria-hidden="true">*</span>
+  </label>
+  <input #campoNombre
+    type="text"
+    class="form-control"
+    [id]="campoId"
+    name="nombre_centro"
+    autocomplete="off"
+    required
+    [attr.maxlength]="maxLength"
+    [(ngModel)]="nombre"
+    [ngModelOptions]="{ standalone: true }"
+    (ngModelChange)="onNombreCambiado()"
+    (keydown.enter)="onEnter($event)"
+    [readonly]="guardando"
+    [attr.aria-invalid]="error ? 'true' : null"
+    [attr.aria-describedby]="error ? campoId + '-error' : campoId + '-ayuda'" />
+
+  @if (error) {
+    <p class="es-field-error" role="alert" [id]="campoId + '-error'">
+      <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+      <span>{{ error }}</span>
+    </p>
+  }
+  @if (!error) {
+    <p class="es-field-help" [id]="campoId + '-ayuda'">
+      Se guarda en mayúsculas y no puede repetir el nombre de otro centro.
+    </p>
+  }
+
+  <div class="es-centro-form__acciones">
+    <button type="button" class="es-btn es-btn--secundario" data-accion="cancelar-centro"
+      (click)="cancelar()" [disabled]="guardando">
+      Cancelar
+    </button>
+    <button type="button" class="es-btn es-btn--primario" data-accion="guardar-centro"
+      (click)="guardar()" [disabled]="guardando" [attr.aria-busy]="guardando ? 'true' : null">
+      @if (guardando) {
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      }
+      {{ textoGuardar }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,362 @@
+<!-- Encabezado -->
+<div class="page-header">
+  <div class="es-page-head">
+    <div class="es-page-head__titulo">
+      <span class="es-page-icon" aria-hidden="true"><i class="bi bi-person-gear"></i></span>
+      <div>
+        <h2>Usuarios</h2>
+        <p class="es-page-sub">Cuentas con acceso al sistema y permisos según su rol.</p>
+        <p class="es-page-sub es-page-sub--nota" data-nota="distincion-trabajadores">
+          <i class="bi bi-info-circle" aria-hidden="true"></i>
+          <span>Este módulo administra las cuentas de inicio de sesión. El personal que entrega o recibe bienes patrimoniales se registra en <strong>Trabajadores</strong>.</span>
+        </p>
+      </div>
+    </div>
+    <button type="button" class="es-btn es-btn--primario" data-accion="nuevo-usuario" (click)="nuevoUsuario()">
+      <i class="bi bi-plus-lg" aria-hidden="true"></i> Nuevo usuario
+    </button>
+  </div>
+</div>
+
+<!-- Barra de búsqueda y filtro de estado -->
+<div class="es-toolbar">
+  <div class="es-search flex-1">
+    <label for="estadoUsuarios" class="visually-hidden">Filtrar por estado de la cuenta</label>
+    <select id="estadoUsuarios" name="estadoFiltro" class="category-select" [(ngModel)]="estadoFiltro" (change)="aplicarFiltros()">
+      <option value="todos">Todos los estados</option>
+      <option value="activos">Activos</option>
+      <option value="inactivos">Inactivos</option>
+    </select>
+    <label for="buscarUsuarios" class="visually-hidden">Buscar por nombre de usuario</label>
+    <input id="buscarUsuarios" name="searchText" type="search" class="es-texto-literal"
+      placeholder="Buscar por nombre de usuario" autocomplete="off"
+      [(ngModel)]="searchText" (input)="onSearchInput()" (keyup.enter)="aplicarFiltros()"
+      (search)="!searchText && aplicarFiltros()" />
+    @if (hayControlesFiltro) {
+      <button type="button" class="search-clear-btn" data-accion="limpiar-filtros" (click)="restablecerFiltros()"
+        aria-label="Restablecer filtros" title="Restablecer filtros">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    }
+    <button type="button" class="search-btn" data-accion="buscar-usuarios" (click)="aplicarFiltros()"
+      aria-label="Buscar" title="Buscar">
+      <i class="bi bi-search" aria-hidden="true"></i>
+    </button>
+  </div>
+  @if (!cargando && !errorCarga) {
+    <p class="es-toolbar__total" aria-live="polite">{{ resumenTotal }}</p>
+  }
+</div>
+
+<!-- Estado de carga -->
+@if (cargando) {
+  <div class="es-loader" role="status">
+    <div class="spinner-border" aria-hidden="true"></div>
+    <span>Cargando usuarios…</span>
+  </div>
+}
+
+<!-- Estado de error -->
+@if (!cargando && errorCarga) {
+  <div class="es-state es-state--error" role="alert">
+    <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+    <p class="es-state__titulo">{{ errorCarga }}</p>
+    <button type="button" class="es-btn es-btn--secundario" data-accion="reintentar-carga" (click)="cargarUsuarios()">
+      Reintentar
+    </button>
+  </div>
+}
+
+<!-- Lista o estados vacío / sin resultados -->
+@if (!cargando && !errorCarga) {
+  @if (usuarios.length > 0) {
+    <div class="es-table-wrap">
+      <table class="es-table es-table--compacta es-table--apilada">
+        <caption class="visually-hidden">Cuentas de usuario registradas</caption>
+        <thead>
+          <tr>
+            <th scope="col">Usuario</th>
+            <th scope="col">Rol</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Fecha de alta</th>
+            <th scope="col" class="es-col-acciones"><span class="visually-hidden">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of usuarios; track u.id_usuario) {
+            <tr [attr.data-usuario]="u.nombre_usuario">
+              <td data-label="Usuario" class="es-celda-principal">
+                <div class="es-usuario-celda">
+                  <span>{{ u.nombre_usuario }}</span>
+                  @if (esCuentaPropia(u)) {
+                    <span class="es-chip es-chip--sesion" data-distintivo="sesion-actual">
+                      <i class="bi bi-person-check" aria-hidden="true"></i>
+                      Sesión actual
+                    </span>
+                  }
+                </div>
+              </td>
+              <td data-label="Rol">
+                <span class="es-chip" [class.es-chip--admin]="esRolAdmin(u)" data-columna="rol">
+                  <i class="bi" [class.bi-shield-lock]="esRolAdmin(u)" [class.bi-person]="!esRolAdmin(u)" aria-hidden="true"></i>
+                  {{ etiquetaRol(u) }}
+                </span>
+              </td>
+              <td data-label="Estado">
+                <span class="es-chip" [class.es-chip--activo]="u.activo" [class.es-chip--inactivo]="!u.activo" data-columna="estado">
+                  <i class="bi" [class.bi-check-circle-fill]="u.activo" [class.bi-slash-circle]="!u.activo" aria-hidden="true"></i>
+                  {{ u.activo ? 'Activa' : 'Inactiva' }}
+                </span>
+              </td>
+              <td data-label="Fecha de alta">{{ formatearFechaAlta(u.fecha_creacion) }}</td>
+              <td class="es-col-acciones">
+                <div class="es-acciones">
+                  <button type="button" class="es-btn es-btn--secundario es-btn--sm" data-accion="editar-usuario"
+                    [attr.aria-label]="'Editar usuario ' + u.nombre_usuario" (click)="editarUsuario(u)">
+                    <i class="bi bi-pencil" aria-hidden="true"></i> Editar
+                  </button>
+                  @if (!esCuentaPropia(u)) {
+                    <button type="button"
+                      class="es-btn es-btn--sm"
+                      [class.es-btn--peligro-suave]="u.activo"
+                      [class.es-btn--secundario]="!u.activo"
+                      data-accion="cambiar-estado"
+                      [attr.aria-label]="(u.activo ? 'Desactivar usuario ' : 'Reactivar usuario ') + u.nombre_usuario"
+                      (click)="confirmarCambioEstado(u)">
+                      <i class="bi" [class.bi-person-slash]="u.activo" [class.bi-person-check]="!u.activo" aria-hidden="true"></i>
+                      {{ u.activo ? 'Desactivar' : 'Reactivar' }}
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    @if (hayFiltroActivo) {
+      <div class="es-state" data-estado="sin-resultados">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <p class="es-state__titulo">
+          @if (filtroAplicado) {
+            Ningún usuario coincide con «{{ filtroAplicado }}»
+          } @else {
+            No hay cuentas en el estado seleccionado
+          }
+        </p>
+        <p class="es-state__texto">Pruebe con otro criterio o restablezca los filtros aplicados.</p>
+        <button type="button" class="es-btn es-btn--secundario" data-accion="restablecer-filtros" (click)="restablecerFiltros()">
+          Restablecer filtros
+        </button>
+      </div>
+    } @else {
+      <div class="es-state" data-estado="vacio">
+        <i class="bi bi-person-gear" aria-hidden="true"></i>
+        <p class="es-state__titulo">Aún no hay usuarios registrados</p>
+        <p class="es-state__texto">Cree la primera cuenta con «Nuevo usuario».</p>
+        <button type="button" class="es-btn es-btn--primario" (click)="nuevoUsuario()">
+          <i class="bi bi-plus-lg" aria-hidden="true"></i> Nuevo usuario
+        </button>
+      </div>
+    }
+  }
+}
+
+<!-- Paginación -->
+@if (!cargando && !errorCarga && totalItems > 0) {
+  <nav class="es-paginacion" aria-label="Paginación de usuarios">
+    <p class="es-paginacion__resumen">
+      Mostrando {{ currentStartIndex }}–{{ currentEndIndex }} de {{ totalItems }} {{ totalItems === 1 ? 'usuario' : 'usuarios' }}
+    </p>
+    <div class="es-pagination">
+      <button type="button" (click)="goToFirstPage()" [disabled]="currentPage === 1" aria-label="Primera página" title="Primera página">
+        <i class="bi bi-chevron-double-left" aria-hidden="true"></i>
+      </button>
+      <button type="button" (click)="previousPage()" [disabled]="currentPage === 1" aria-label="Página anterior" title="Página anterior">
+        <i class="bi bi-chevron-left" aria-hidden="true"></i>
+      </button>
+      <span class="page-info" aria-current="page">Página {{ currentPage }} de {{ totalPages }}</span>
+      <button type="button" (click)="nextPage()" [disabled]="currentPage >= totalPages" aria-label="Página siguiente" title="Página siguiente">
+        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+      </button>
+      <button type="button" (click)="goToLastPage()" [disabled]="currentPage >= totalPages" aria-label="Última página" title="Última página">
+        <i class="bi bi-chevron-double-right" aria-hidden="true"></i>
+      </button>
+    </div>
+  </nav>
+}
+
+<!-- Modal crear / editar usuario -->
+<div #usuarioModalRef class="modal fade" id="usuarioModal" tabindex="-1" aria-labelledby="usuarioModalTitulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header es-modal-header">
+        <h3 class="modal-title es-modal-title" id="usuarioModalTitulo">
+          {{ esEdicion ? 'Editar usuario' : 'Nuevo usuario' }}
+        </h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form (ngSubmit)="onSubmit()" novalidate>
+        <div class="modal-body es-modal-body">
+          <p class="es-form-nota es-form-nota--suave">
+            Los campos con <span class="es-required" aria-hidden="true">*</span> son obligatorios.
+          </p>
+
+          @if (errorFormulario) {
+            <div class="es-form-alert" role="alert" data-alerta="error-formulario">
+              <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+              <span>{{ errorFormulario }}</span>
+            </div>
+          }
+
+          <div class="es-field">
+            <label for="nombreUsuarioModal" class="es-label">
+              Nombre de usuario <span class="es-required" aria-hidden="true">*</span>
+            </label>
+            <input type="text" class="form-control es-texto-literal" id="nombreUsuarioModal" name="nombre_usuario"
+              autocomplete="off" spellcheck="false" autocapitalize="none" required
+              placeholder="Ej.: juan.perez"
+              [(ngModel)]="formulario.nombre_usuario" (ngModelChange)="limpiarError('nombre_usuario')"
+              [attr.aria-invalid]="errores.nombre_usuario ? 'true' : null"
+              [attr.aria-describedby]="describedBy('nombreUsuarioModal-ayuda', errores.nombre_usuario ? 'nombreUsuarioModal-error' : null)" />
+            <p id="nombreUsuarioModal-ayuda" class="es-field-help">
+              De 3 a 50 caracteres: letras, números, punto (.), guion (-) o guion bajo (_), sin espacios.
+            </p>
+            @if (errores.nombre_usuario) {
+              <p id="nombreUsuarioModal-error" class="es-field-error" role="alert">
+                <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+                <span>{{ errores.nombre_usuario }}</span>
+              </p>
+            }
+          </div>
+
+          <div class="es-field">
+            <label for="rolUsuarioModal" class="es-label">
+              Rol <span class="es-required" aria-hidden="true">*</span>
+            </label>
+            <select class="form-select" id="rolUsuarioModal" name="id_rol" required
+              [(ngModel)]="formulario.id_rol" (ngModelChange)="limpiarError('id_rol')"
+              [disabled]="editandoCuentaPropia"
+              [attr.disabled]="editandoCuentaPropia ? '' : null"
+              [attr.aria-invalid]="errores.id_rol ? 'true' : null"
+              [attr.aria-describedby]="describedBy(editandoCuentaPropia ? 'rolUsuarioModal-propia' : null, errores.id_rol ? 'rolUsuarioModal-error' : null)">
+              @for (r of roles; track r.id_rol) {
+                <option [ngValue]="r.id_rol">{{ etiquetaOpcionRol(r) }}</option>
+              }
+            </select>
+            @if (editandoCuentaPropia) {
+              <p id="rolUsuarioModal-propia" class="es-field-help" data-nota="cuenta-propia">
+                Esta es su propia cuenta (sesión actual): no puede cambiar su propio rol ni desactivar su propia cuenta.
+              </p>
+            }
+            @if (errores.id_rol) {
+              <p id="rolUsuarioModal-error" class="es-field-error" role="alert">
+                <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+                <span>{{ errores.id_rol }}</span>
+              </p>
+            }
+          </div>
+
+          <div class="es-field">
+            <label for="contrasenaUsuarioModal" class="es-label">
+              {{ esEdicion ? 'Nueva contraseña (opcional)' : 'Contraseña' }}
+              @if (!esEdicion) {
+                <span class="es-required" aria-hidden="true">*</span>
+              }
+            </label>
+            <div class="es-input-clave">
+              <input [type]="mostrarContrasena ? 'text' : 'password'"
+                class="form-control es-texto-literal"
+                id="contrasenaUsuarioModal"
+                name="contrasena"
+                autocomplete="new-password"
+                [required]="!esEdicion"
+                [placeholder]="esEdicion ? 'Dejar en blanco para no cambiarla' : 'Mínimo ' + longitudMinimaClave + ' caracteres'"
+                [(ngModel)]="formulario.contrasena"
+                (ngModelChange)="onCambioContrasena()"
+                [attr.aria-invalid]="errores.contrasena ? 'true' : null"
+                [attr.aria-describedby]="describedBy('contrasenaModal-ayuda', editandoCuentaPropia ? 'contrasenaModal-aviso-propia' : null, errores.contrasena ? 'contrasenaModal-error' : null)" />
+              <button type="button" class="es-btn es-btn--secundario"
+                data-accion="mostrar-contrasena"
+                (click)="mostrarContrasena = !mostrarContrasena"
+                [attr.aria-label]="mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                [attr.aria-pressed]="mostrarContrasena">
+                <i class="bi" [class.bi-eye]="!mostrarContrasena" [class.bi-eye-slash]="mostrarContrasena" aria-hidden="true"></i>
+                <span>{{ mostrarContrasena ? 'Ocultar' : 'Mostrar' }}</span>
+              </button>
+            </div>
+            <p id="contrasenaModal-ayuda" class="es-field-help">
+              @if (esEdicion) {
+                Déjela en blanco para conservar la actual. Si escribe una nueva: mínimo {{ longitudMinimaClave }} caracteres (máximo {{ longitudMaximaBytesClave }} bytes), con letra y número, distinta del usuario.
+              } @else {
+                Mínimo {{ longitudMinimaClave }} caracteres (máximo {{ longitudMaximaBytesClave }} bytes), con al menos una letra y un número, distinta del usuario.
+              }
+            </p>
+            @if (editandoCuentaPropia) {
+              <p id="contrasenaModal-aviso-propia" class="es-form-nota" data-aviso="cambio-clave-propia">
+                <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                <span>Si cambia su propia contraseña, se cerrará su sesión actual al guardar y deberá iniciar sesión con la nueva clave.</span>
+              </p>
+            }
+            @if (errores.contrasena) {
+              <p id="contrasenaModal-error" class="es-field-error" role="alert">
+                <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+                <span>{{ errores.contrasena }}</span>
+              </p>
+            }
+          </div>
+
+          <div class="es-field">
+            <label for="confirmarContrasenaModal" class="es-label">
+              Confirmar {{ esEdicion ? 'nueva contraseña' : 'contraseña' }}
+              @if (!esEdicion || tieneNuevaContrasena) {
+                <span class="es-required" aria-hidden="true">*</span>
+              }
+            </label>
+            <div class="es-input-clave">
+              <input [type]="mostrarConfirmacion ? 'text' : 'password'"
+                class="form-control es-texto-literal"
+                id="confirmarContrasenaModal"
+                name="confirmarContrasena"
+                autocomplete="new-password"
+                [required]="!esEdicion || tieneNuevaContrasena"
+                placeholder="Repita la contraseña"
+                [(ngModel)]="formulario.confirmarContrasena"
+                (ngModelChange)="limpiarError('confirmarContrasena')"
+                [attr.aria-invalid]="errores.confirmarContrasena ? 'true' : null"
+                [attr.aria-describedby]="errores.confirmarContrasena ? 'confirmarContrasenaModal-error' : null" />
+              <button type="button" class="es-btn es-btn--secundario"
+                data-accion="mostrar-confirmacion"
+                (click)="mostrarConfirmacion = !mostrarConfirmacion"
+                [attr.aria-label]="mostrarConfirmacion ? 'Ocultar confirmación de contraseña' : 'Mostrar confirmación de contraseña'"
+                [attr.aria-pressed]="mostrarConfirmacion">
+                <i class="bi" [class.bi-eye]="!mostrarConfirmacion" [class.bi-eye-slash]="mostrarConfirmacion" aria-hidden="true"></i>
+                <span>{{ mostrarConfirmacion ? 'Ocultar' : 'Mostrar' }}</span>
+              </button>
+            </div>
+            @if (errores.confirmarContrasena) {
+              <p id="confirmarContrasenaModal-error" class="es-field-error" role="alert">
+                <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+                <span>{{ errores.confirmarContrasena }}</span>
+              </p>
+            }
+          </div>
+        </div>
+
+        <div class="modal-footer es-modal-footer">
+          <button type="button" class="es-btn es-btn--secundario" data-accion="cancelar-usuario" data-bs-dismiss="modal" [disabled]="guardando">
+            Cancelar
+          </button>
+          <button type="submit" class="es-btn es-btn--primario" data-accion="guardar-usuario" [disabled]="guardando"
+            [attr.aria-busy]="guardando ? 'true' : null">
+            @if (guardando) {
+              <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            }
+            {{ guardando ? 'Guardando…' : (esEdicion ? 'Guardar cambios' : 'Crear usuario') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
