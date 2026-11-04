@@ -2,7 +2,9 @@
 
 Aplicación web para registrar las **papeletas del Formulario Único Patrimonial** de EsSalud: el traslado de equipos de un trabajador y un lugar de origen a otro de destino, con número correlativo, detalle de los bienes y el PDF de la papeleta generado en el navegador.
 
-**Versión actual: `1.0.0-rc.2`, versión candidata.** Está pendiente de la aceptación del área usuaria y de la validación en producción; todavía no es una versión estable.
+Proyecto desarrollado de forma independiente por **Sohnny Walter Lima Infanzón**. No es un sistema oficial de EsSalud ni ha sido adoptado oficialmente por la institución; los nombres y logotipos de EsSalud pertenecen a su titular.
+
+**Versión actual: `1.0.0-rc.2`, versión candidata.** No es una versión estable: su uso en producción dependería de la aceptación del área usuaria y de la validación correspondiente.
 
 ![Listado de papeletas](docs/capturas/papeletas-escritorio.png)
 
@@ -121,10 +123,10 @@ docs/revision/pruebas Pruebas extremo a extremo y base de pruebas local
 | `1.0.0-rc.2` | Versión candidata actual: imagen de producción sin datos de demostración, paquete de instalación independiente con HTTPS, sesión entre pestañas, listados adaptables y «Acerca del sistema». Pendiente de aceptación |
 | `1.0.0-rc.1` | Primera versión candidata: revisión integral, Docker, migraciones, copias y cuentas de usuario |
 
-La versión `1.0.0` estable se publicará tras la aceptación del área usuaria y la validación en producción.
+No se ha publicado una versión `1.0.0` estable; solo se publicaría tras la aceptación del área usuaria y la validación en producción.
 
 ## Créditos
-Desarrollado por **Sohnny Walter Lima Infanzón** (2026).
+Desarrollado por **Sohnny Walter Lima Infanzón** (2026), como desarrollador independiente.
 
 ## Licencia y condiciones de uso
 Este repositorio **todavía no tiene una licencia definida**. Las condiciones de uso, modificación y distribución están pendientes de la verificación de derechos con EsSalud; hay un borrador en `docs/entrega/propuestas/`.
