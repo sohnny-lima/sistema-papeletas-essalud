@@ -79,6 +79,7 @@ La API y la base de datos no se publican hacia la red: solo el frontend, detrás
 ## Instalación con Docker
 - **Desde el repositorio** (construye las imágenes): `deploy/compose.yaml`, más `deploy/compose.db.yaml` si PostgreSQL va en contenedor. Guía en [docs/entrega/guia-instalacion.md](docs/entrega/guia-instalacion.md); detalle en [docs/entrega/docker.md](docs/entrega/docker.md).
 - **Paquete de instalación independiente** (recomendado para servidores):
+  - **descarga directa**, sin clonar el repositorio: el paquete y su `.sha256` están adjuntos a cada [Release](https://github.com/sohnny-lima/sistema-papeletas-essalud/releases) (versión actual: [`v1.0.0-rc.2`](https://github.com/sohnny-lima/sistema-papeletas-essalud/releases/tag/v1.0.0-rc.2));
   - `deploy/scripts/construir-paquete.sh <etiqueta> <versión> <destino>` genera, desde un commit, un `.tar.gz` con las imágenes (`docker save`), un Compose de producción sin compilación, los scripts y la documentación, con sumas SHA-256;
   - en el servidor, sin repositorio ni Internet: `verificar-paquete.sh` → `instalar.sh` → `comprobar.sh`;
   - incluye copias, restauración, actualización y reversión. Ver [deploy/paquete/documentacion/guia-instalacion.md](deploy/paquete/documentacion/guia-instalacion.md).

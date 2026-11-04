@@ -105,11 +105,12 @@ Pruebe con **dos pestañas del mismo perfil** de Chrome (no una ventana privada 
 - [ ] J8. Los filtros y permisos de cada módulo siguen como antes (B1-B5). *Automático:* `a8-entrega.spec.ts` y specs `LV …` de cada módulo.
 
 ## K. Versión candidata 1.0.0-rc.2 y paquete de instalación (03/11/2026). PENDIENTE de la revisión del responsable
-Instale usted el paquete en WSL, en un entorno aparte. **No toca `:8080` ni `:4200`.** Los pasos (PowerShell, una vez):
+Instale usted el paquete publicado en el Release de GitHub, en WSL y en un entorno aparte, sin clonar el repositorio. **No toca `:8080` ni `:4200`.** Los pasos (PowerShell, una vez):
 1. `wsl -d Ubuntu -u root`, y dentro:
    ```bash
    mkdir -p /root/aceptacion-rc2 && cd /root/aceptacion-rc2
-   cp /mnt/d/Proyectos/sistema-papeletas-essalud/.local/paquetes/papeletas-essalud-1.0.0-rc.2.tar.gz* .
+   u=https://github.com/sohnny-lima/sistema-papeletas-essalud/releases/download/v1.0.0-rc.2
+   curl -fLO $u/papeletas-essalud-1.0.0-rc.2.tar.gz -fLO $u/papeletas-essalud-1.0.0-rc.2.tar.gz.sha256
    sha256sum -c papeletas-essalud-1.0.0-rc.2.tar.gz.sha256 && tar -xzf papeletas-essalud-1.0.0-rc.2.tar.gz
    cd papeletas-essalud-1.0.0-rc.2 && cp compose/env.example compose/.env
    sed -i 's/^PROYECTO=.*/PROYECTO=papeletas-aceptacion/; s/^HTTP_PORT=.*/HTTP_PORT=18190/' compose/.env
