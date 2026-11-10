@@ -72,7 +72,7 @@ jobs:
           npm test 2>&1 | tee pruebas-api.log
       - name: Publicar el registro
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: backend-pruebas
           path: backend-papeletas/pruebas-api.log
@@ -112,7 +112,7 @@ jobs:
           node-version-file: .node-version
           cache: npm
           cache-dependency-path: docs/revision/pruebas/e2e/package-lock.json
-      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Preparar E2E con Chrome del ejecutor
         run: |
           npm ci --prefix docs/revision/pruebas/e2e
@@ -126,7 +126,7 @@ jobs:
           bash deploy/scripts/humo.sh --e2e 2>&1 | tee docs/revision/pruebas/logs/c006-docker-ci.log
       - name: Publicar evidencia sin secretos
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: docker-e2e
           path: |
