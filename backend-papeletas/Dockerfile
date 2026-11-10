@@ -1,4 +1,4 @@
-FROM node:24.21.0-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20 AS base
+FROM node:26.13.0-bookworm-slim@sha256:add5c17c14752c54d2f3d519ec46a3815684d41c33f198bcb09fb998f7dcbf68 AS base
 ARG APP_VERSION=1.0.0-rc.2
 ARG VCS_REF=sin-revision
 ARG SOURCE_URL=entrega-essalud
